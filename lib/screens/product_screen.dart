@@ -33,6 +33,21 @@ class ProductCard extends StatelessWidget {
     required this.price,
   });
 
+  void addToCart(BuildContext context) {
+    CartData.items.add({
+      "name": name,
+      "price": price,
+      "qty": 1,
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CartScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -42,19 +57,7 @@ class ProductCard extends StatelessWidget {
         title: Text(name),
         subtitle: Text(price),
         trailing: ElevatedButton(
-          onPressed: () {
-            CartData.items.add({
-              "name": name,
-              "price": price,
-            });
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CartScreen(),
-              ),
-            );
-          },
+          onPressed: () => addToCart(context),
           child: const Text("Buy"),
         ),
       ),
