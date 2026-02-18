@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../../../services/product_service.dart';
+
 import 'product_details_screen.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
@@ -11,69 +14,13 @@ class ProductCatalogScreen extends StatefulWidget {
 }
 
 class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
-  final List<Map<String, String>> allProducts = [
-    {
-      "name": "LED Bulb (9W)",
-      "price": "₹120",
-      "image": "https://via.placeholder.com/150?text=Bulb",
-      "description":
-          "High efficiency 9W LED bulb with 1 year warranty. Cool Daylight.",
-    },
-    {
-      "name": "Switch Board (6M)",
-      "price": "₹250",
-      "image": "https://via.placeholder.com/150?text=Switch",
-      "description":
-          "Modular switch board plate, 6 modules. Flame retardant material.",
-    },
-    {
-      "name": "Copper Wire (1m)",
-      "price": "₹40",
-      "image": "https://via.placeholder.com/150?text=Wire",
-      "description": "Pure copper wire 1.5sqmm red color for house wiring.",
-    },
-    {
-      "name": "Extension Box",
-      "price": "₹350",
-      "image": "https://via.placeholder.com/150?text=Box",
-      "description":
-          "4 Universal sockets with individual switches and indicator.",
-    },
-    {
-      "name": "Ceiling Fan",
-      "price": "₹1500",
-      "image": "https://via.placeholder.com/150?text=Fan",
-      "description": "High speed ceiling fan 1200mm sweep. Energy saving.",
-    },
-    {
-      "name": "MCB 32A",
-      "price": "₹180",
-      "image": "https://via.placeholder.com/150?text=MCB",
-      "description": "Double pole MCB 32A C-Curve. Short circuit protection.",
-    },
-  ];
-
-  List<Map<String, String>> filteredProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredProducts = allProducts;
-  }
-
-  void searchProducts(String query) {
-    setState(() {
-      filteredProducts = allProducts
-          .where(
-            (product) =>
-                product["name"]!.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
-    });
-  }
+  String _searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
+    final productService = Provider.of<ProductService>(context);
+    final products = productService.searchProducts(_searchQuery);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -91,7 +38,11 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
-              onChanged: searchProducts,
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
               decoration: InputDecoration(
                 hintText: "Search items...",
                 prefixIcon: const Icon(Icons.search),
@@ -117,9 +68,9 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                 mainAxisSpacing: 15,
                 childAspectRatio: 0.75,
               ),
-              itemCount: filteredProducts.length,
+              itemCount: products.length,
               itemBuilder: (context, index) {
-                final product = filteredProducts[index];
+                final product = products[index];
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -151,7 +102,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                               top: Radius.circular(15),
                             ),
                             child: Image.network(
-                              product["image"]!,
+                              product.imageUrl,
                               fit: BoxFit.cover,
                               width: double.infinity,
                               errorBuilder: (context, error, stackTrace) =>
@@ -170,7 +121,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                product["name"]!,
+                                product.name,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -180,7 +131,7 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                product["price"]!,
+                                "₹${product.price}",
                                 style: GoogleFonts.outfit(
                                   color: const Color(0xFF1A237E),
                                   fontWeight: FontWeight.bold,

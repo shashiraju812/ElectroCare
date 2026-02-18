@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -48,7 +49,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       title: 'Customer',
                       subtitle: 'Browse products & book appointments',
                       icon: Icons.person_outline_rounded,
-                      color: Colors.blueAccent,
+                      color: AppColors.primaryBlue,
                       role: UserRole.user,
                       delay: 0,
                     ),
@@ -58,7 +59,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       title: 'Shop Owner',
                       subtitle: 'Manage inventory & orders',
                       icon: Icons.store_mall_directory_rounded,
-                      color: Colors.orangeAccent,
+                      color: AppColors.accentAmber,
                       role: UserRole.owner,
                       delay: 100,
                     ),
@@ -68,7 +69,9 @@ class RoleSelectionScreen extends StatelessWidget {
                       title: 'Service Provider',
                       subtitle: 'Receive jobs & track requests',
                       icon: Icons.engineering_rounded,
-                      color: Colors.teal,
+                      color: const Color(
+                        0xFF43A047,
+                      ), // Keep Green for distinctiveness or move to Blue/Amber mix
                       role: UserRole.provider,
                       delay: 200,
                     ),

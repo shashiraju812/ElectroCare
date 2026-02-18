@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
 
 import 'tabs/home_tab.dart';
@@ -24,38 +25,47 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldWhite,
+      backgroundColor: AppColors.scaffoldBackground,
       body: _tabs[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.1),
-        elevation: 2,
-        backgroundColor: Colors.white,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppColors.primaryGreen),
-            label: 'Home',
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: AppColors.primaryBlue.withOpacity(0.1),
+          labelTextStyle: MaterialStateProperty.all(
+            GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w500),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(
-              Icons.calendar_month,
-              color: AppColors.primaryGreen,
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          elevation: 10,
+          shadowColor: Colors.black.withOpacity(0.1),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: AppColors.primaryBlue),
+              label: 'Home',
             ),
-            label: 'Bookings',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppColors.primaryGreen),
-            label: 'Profile',
-          ),
-        ],
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(
+                Icons.calendar_month,
+                color: AppColors.primaryBlue,
+              ),
+              label: 'Bookings',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person, color: AppColors.primaryBlue),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

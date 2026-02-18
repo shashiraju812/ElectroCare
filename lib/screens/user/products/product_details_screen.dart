@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../../../models/product_model.dart';
+import '../../../services/cart_service.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
-  final Map<String, String> product;
+  final Product product;
 
   const ProductDetailsScreen({super.key, required this.product});
 
@@ -17,7 +20,12 @@ class ProductDetailsScreen extends StatelessWidget {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(product["image"]!, fit: BoxFit.cover),
+              background: Image.network(
+                product.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(color: Colors.grey[200]),
+              ),
             ),
           ),
           SliverPadding(
@@ -27,16 +35,18 @@ class ProductDetailsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      product["name"]!,
-                      style: GoogleFonts.outfit(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A237E),
+                    Expanded(
+                      child: Text(
+                        product.name,
+                        style: GoogleFonts.outfit(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A237E),
+                        ),
                       ),
                     ),
                     Text(
-                      product["price"]!,
+                      "₹${product.price}",
                       style: GoogleFonts.outfit(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -55,7 +65,7 @@ class ProductDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  product["description"] ?? "No description available.",
+                  product.description,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -113,8 +123,15 @@ class ProductDetailsScreen extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                  Provider.of<CartService>(
+                    context,
+                    listen: false,
+                  ).addToCart(product);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Added to cart!")),
+                    SnackBar(
+                      content: Text("${product.name} added to cart!"),
+                      duration: const Duration(seconds: 1),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,28 +1,41 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Green & White Theme
-  static const Color primaryGreen = Color(0xFF2E7D32); // Professional Green
-  static const Color scaffoldWhite = Color(0xFFF5F5F5); // Light Grey/White
-  static const Color textBlack = Color(0xFF212121);
-  static const Color textGrey = Color(0xFF757575);
-  static const Color inputFill = Color(0xFFFFFFFF);
-  static const Color iconGrey = Color(0xFF9E9E9E);
+  // Electrical/Industrial Theme
+  static const Color primaryBlue = Color(0xFF1A237E); // Deep Indigo/Blue
+  static const Color accentAmber = Color(0xFFFFC107); // Electric Amber
+  static const Color scaffoldBackground = Color(0xFFF5F7FA); // Light Blue-Grey
+  static const Color cardWhite = Color(0xFFFFFFFF);
 
-  // Keep legacy for safety but map them to new theme
-  static const Color igBlack = scaffoldWhite;
-  static const Color igDarkGrey = inputFill;
-  static const Color igGrey = Color(0xFFE0E0E0);
-  static const Color igWhite = textBlack;
-  static const Color igSecondaryText = textGrey;
-  static const Color igButtonGrey = Color(0xFFEEEEEE);
+  static const Color textDark = Color(0xFF263238); // Blue Grey 900
+  static const Color textGrey = Color(0xFF78909C); // Blue Grey 400
+  static const Color successGreen = Color(0xFF43A047);
+  static const Color errorRed = Color(0xFFE53935);
 
-  static const Color candyAppleRed = primaryGreen; // Map Red to Green
-
-  // RGB Gradient - map to Green Gradient for consistency
-  static const LinearGradient rgbGradient = LinearGradient(
-    colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
+  // Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
+
+  static const LinearGradient amberGradient = LinearGradient(
+    colors: [Color(0xFFFFC107), Color(0xFFFFCA28)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Legacy mappings for backward compatibility during refactor
+  // Use these cautiously and replace with improved names where possible
+  static const Color primaryGreen = primaryBlue;
+  static const Color scaffoldWhite = scaffoldBackground;
+  static const Color textBlack = textDark;
+
+  // Mapping old IG colors to new theme to prevent breaks,
+  // but these should be phased out.
+  static const Color igBlack = scaffoldBackground;
+  static const Color igWhite = textDark;
+  static const Color igGrey = Color(0xFFCFD8DC);
+  static const Color igSecondaryText = textGrey;
+  static const Color candyAppleRed = primaryBlue;
 }

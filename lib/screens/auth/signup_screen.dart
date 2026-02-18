@@ -145,7 +145,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _obscurePassword
                             ? Icons.visibility
                             : Icons.visibility_off,
-                        color: AppColors.iconGrey,
+                        color: AppColors.textGrey,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -169,8 +169,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   validator: (value) {
-                    if (value != _passwordController.text)
+                    if (value != _passwordController.text) {
                       return "Passwords do not match";
+                    }
                     return null;
                   },
                 ),

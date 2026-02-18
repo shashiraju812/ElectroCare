@@ -59,6 +59,15 @@ class AuthService extends ChangeNotifier {
     return true;
   }
 
+  void toggleRole() {
+    if (_currentUserRole == UserRole.user) {
+      _currentUserRole = UserRole.provider;
+    } else {
+      _currentUserRole = UserRole.user;
+    }
+    notifyListeners();
+  }
+
   void setRole(UserRole role) {
     _currentUserRole = role;
     notifyListeners();

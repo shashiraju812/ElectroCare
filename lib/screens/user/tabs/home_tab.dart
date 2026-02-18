@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:provider/provider.dart';
+import '../../../services/auth_service.dart';
+import '../../auth/login_screen.dart';
+import '../cart_screen.dart';
 import '../../../utils/app_colors.dart';
 
 class HomeTab extends StatelessWidget {
@@ -18,7 +22,7 @@ class HomeTab extends StatelessWidget {
           "ElectroCare",
           style: GoogleFonts.grandHotel(
             fontSize: 28,
-            color: AppColors.primaryGreen,
+            color: AppColors.primaryBlue,
           ),
         ),
         actions: [
@@ -34,7 +38,22 @@ class HomeTab extends StatelessWidget {
               Icons.shopping_cart_outlined,
               color: AppColors.textBlack,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            onPressed: () {
+              Provider.of<AuthService>(context, listen: false).logout();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
@@ -68,68 +87,72 @@ class HomeTab extends StatelessWidget {
             ),
 
             // 2. Promo Banner
+            // 2. Promo Banner
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               width: double.infinity,
-              height: 150,
+              height: 160,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primaryGreen, Color(0xFF66BB6A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Stack(
                 children: [
                   Positioned(
-                    right: -20,
-                    bottom: -20,
+                    right: -30,
+                    bottom: -30,
                     child: Icon(
-                      Icons.lightbulb,
-                      size: 140,
-                      color: Colors.white.withValues(alpha: 0.2),
+                      Icons.bolt,
+                      size: 180,
+                      color: Colors.white.withOpacity(0.1),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Summer Sale",
-                          style: GoogleFonts.outfit(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.accentAmber,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "Limited Offer",
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
+                          "Summer Sale",
+                          style: GoogleFonts.outfit(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
                           "Up to 40% off on\nCooling Appliances",
                           style: GoogleFonts.outfit(
                             fontSize: 16,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            "Shop Now",
-                            style: GoogleFonts.outfit(
-                              color: AppColors.primaryGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                            color: Colors.white.withOpacity(0.9),
                           ),
                         ),
                       ],

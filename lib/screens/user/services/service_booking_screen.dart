@@ -1,13 +1,88 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../models/booking_model.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/booking_service.dart';
+import '../../../services/ai_service.dart';
+import '../../../utils/app_colors.dart';
 
-class ServiceBookingScreen extends StatelessWidget {
+class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
+
+  @override
+  State<ServiceBookingScreen> createState() => _ServiceBookingScreenState();
+}
+
+class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
+  String _selectedService = "Wiring";
+  final TextEditingController _descriptionController = TextEditingController();
+  Timer? _debounce;
+  bool _isLoading = false;
+  bool _isAiSuggesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController.addListener(_onDescriptionChanged);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _descriptionController.removeListener(_onDescriptionChanged);
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _onDescriptionChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 800), () {
+      if (_descriptionController.text.isNotEmpty) {
+        _predictCategory();
+      }
+    });
+  }
+
+  void _predictCategory() {
+    setState(() => _isAiSuggesting = true);
+
+    // Simulate thinking time for effect
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      final predicted = AiService.predictCategory(_descriptionController.text);
+      if (predicted != _selectedService) {
+        setState(() {
+          _selectedService = predicted;
+          _isAiSuggesting = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Text("Smartly switched to '$predicted'"),
+              ],
+            ),
+            backgroundColor: AppColors.primaryBlue,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        setState(() => _isAiSuggesting = false);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: Text(
           'Book Electrician',
@@ -19,22 +94,47 @@ class ServiceBookingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Select Service Type",
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Select Service Type",
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                if (_isAiSuggesting)
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "AI Suggesting...",
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: AppColors.primaryBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).animate().fadeIn(),
+                    ],
+                  ),
+              ],
             ),
             const SizedBox(height: 15),
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: [
-                _buildChip("Wiring", true),
-                _buildChip("Installation", false),
-                _buildChip("Repair", false),
-                _buildChip("Inspection", false),
+                _buildChip("Wiring"),
+                _buildChip("Installation"),
+                _buildChip("Repair"),
+                _buildChip("Inspection"),
               ],
             ),
             const SizedBox(height: 30),
@@ -43,10 +143,12 @@ class ServiceBookingScreen extends StatelessWidget {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 15),
             TextField(
+              controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
                 hintText: "E.g. Switch board sparkling...",
@@ -55,6 +157,13 @@ class ServiceBookingScreen extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: const BorderSide(
+                    color: AppColors.primaryBlue,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -74,6 +183,13 @@ class ServiceBookingScreen extends StatelessWidget {
                   ),
                   fit: BoxFit.cover,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: Center(
                 child: Container(
@@ -84,10 +200,30 @@ class ServiceBookingScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    "Simulated Location",
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: AppColors.errorRed,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "Simulated Location",
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -95,88 +231,204 @@ class ServiceBookingScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               "We will assign the nearest electrician.",
-              style: GoogleFonts.outfit(color: Colors.grey),
+              style: GoogleFonts.outfit(
+                color: AppColors.textGrey,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
-        color: Colors.white,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
         child: ElevatedButton(
-          onPressed: () {
-            _showBookingDialog(context);
-          },
+          onPressed: _isLoading ? null : () => _submitBooking(context),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            backgroundColor: AppColors.primaryBlue,
+            padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
+            elevation: 5,
+            shadowColor: AppColors.primaryBlue.withOpacity(0.4),
           ),
-          child: Text(
-            "Book Now",
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.bolt, color: AppColors.accentAmber),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Book Now",
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChip(String label) {
+    bool isSelected = _selectedService == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedService = label;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.grey[300]!,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+            color: isSelected ? Colors.white : AppColors.textDark,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1A237E) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? Colors.transparent : Colors.grey[300]!,
-        ),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.outfit(
-          color: isSelected ? Colors.white : Colors.black,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
+  Future<void> _submitBooking(BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final bookingService = Provider.of<BookingService>(context, listen: false);
+
+    if (_descriptionController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please describe the issue")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 2));
+
+    final newBooking = Booking(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: authService.userName ?? "Guest User",
+      serviceType: _selectedService,
+      description: _descriptionController.text.trim(),
+      location: "Simulated Location",
+      timestamp: DateTime.now(),
+      status: BookingStatus.pending,
+      price: null,
     );
+
+    await bookingService.createBooking(newBooking);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showBookingDialog(context);
+    }
   }
 
   void _showBookingDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 60,
+              ),
+            ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+            const SizedBox(height: 20),
             Text(
               "Booking Confirmed!",
               style: GoogleFonts.outfit(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              "Searching for nearby electricians...",
+              "We are searching for nearby electricians for your '$_selectedService' request.",
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: Colors.grey),
+              style: GoogleFonts.outfit(color: AppColors.textGrey),
+            ),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context); // Go back to Home
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  "Track Request",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Track Request"),
-          ),
-        ],
       ),
     );
   }
