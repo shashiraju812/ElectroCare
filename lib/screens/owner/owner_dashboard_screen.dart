@@ -117,7 +117,9 @@ class OwnerDashboardScreen extends StatelessWidget {
                     color: Colors.white,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
+                        backgroundColor: AppColors.primaryBlue.withValues(
+                          alpha: 0.1,
+                        ),
                         child: const Icon(
                           Icons.shopping_bag_outlined,
                           color: AppColors.primaryBlue,
@@ -242,7 +244,7 @@ class OwnerDashboardScreen extends StatelessWidget {
         border: Border(left: BorderSide(color: color, width: 5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

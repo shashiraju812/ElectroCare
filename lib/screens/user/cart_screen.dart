@@ -66,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -149,7 +149,7 @@ class _CartScreenState extends State<CartScreen> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, -10),
                   ),
@@ -231,8 +231,9 @@ class _CartScreenState extends State<CartScreen> {
 
     if (mounted) {
       setState(() => _isCheckingOut = false);
+      if (!mounted) return;
       showDialog(
-        context: context,
+        context: this.context,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),

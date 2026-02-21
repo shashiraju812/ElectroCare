@@ -7,7 +7,7 @@ import 'services/booking_service.dart';
 import 'services/product_service.dart';
 import 'services/cart_service.dart';
 import 'services/order_service.dart';
-import 'screens/auth/login_screen.dart';
+import 'screens/auth/role_selection_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 4,
-              shadowColor: AppColors.primaryBlue.withOpacity(0.4),
+              shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
             ),
           ),
           inputDecorationTheme: InputDecorationTheme(
@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
             hintStyle: const TextStyle(color: AppColors.textGrey),
           ),
         ),
-        home: const LoginScreen(),
+        home: const RoleSelectionScreen(),
       ),
     );
   }

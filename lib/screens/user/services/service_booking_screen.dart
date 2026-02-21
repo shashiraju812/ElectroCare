@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../../../models/booking_model.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/booking_service.dart';
@@ -23,6 +24,22 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   bool _isLoading = false;
   bool _isAiSuggesting = false;
 
+  // Scheduling fields
+  DateTime? _selectedDate;
+  String? _selectedTime;
+
+  final List<String> _timeSlots = [
+    "09:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "02:00 PM",
+    "03:00 PM",
+    "04:00 PM",
+    "05:00 PM",
+    "06:00 PM",
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -38,7 +55,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   }
 
   void _onDescriptionChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+    }
     _debounce = Timer(const Duration(milliseconds: 800), () {
       if (_descriptionController.text.isNotEmpty) {
         _predictCategory();
@@ -49,7 +68,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   void _predictCategory() {
     setState(() => _isAiSuggesting = true);
 
-    // Simulate thinking time for effect
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       final predicted = AiService.predictCategory(_descriptionController.text);
@@ -79,6 +97,34 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     });
   }
 
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textDark,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +140,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Service Type
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -138,6 +185,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ],
             ),
             const SizedBox(height: 30),
+
+            // Description
             Text(
               "Describe Issue",
               style: GoogleFonts.outfit(
@@ -169,6 +218,151 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ),
             const SizedBox(height: 30),
 
+            // Schedule Date & Time
+            Text(
+              "Schedule Date & Time",
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // Date Picker
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: _selectedDate != null
+                        ? AppColors.primaryBlue
+                        : Colors.grey[300]!,
+                    width: _selectedDate != null ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: _selectedDate != null
+                          ? AppColors.primaryBlue
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _selectedDate != null
+                          ? DateFormat(
+                              'EEEE, MMM d, yyyy',
+                            ).format(_selectedDate!)
+                          : "Select a date",
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        color: _selectedDate != null
+                            ? AppColors.textDark
+                            : Colors.grey,
+                        fontWeight: _selectedDate != null
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: _selectedDate != null
+                          ? AppColors.primaryBlue
+                          : Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // Time Slots
+            Text(
+              "Select Time Slot",
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textGrey,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _timeSlots.map((time) {
+                final isSelected = _selectedTime == time;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedTime = time;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primaryBlue : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.transparent
+                            : Colors.grey[300]!,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primaryBlue.withValues(
+                                  alpha: 0.3,
+                                ),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: isSelected ? Colors.white : Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          time,
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textDark,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 30),
+
             // Mock Map View
             Container(
               height: 200,
@@ -177,7 +371,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(20),
                 image: const DecorationImage(
-                  // Placeholder map image
                   image: NetworkImage(
                     "https://via.placeholder.com/600x300?text=Map+Location+Placeholder",
                   ),
@@ -185,7 +378,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -202,7 +395,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 5,
                       ),
                     ],
@@ -245,7 +438,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -260,7 +453,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               borderRadius: BorderRadius.circular(15),
             ),
             elevation: 5,
-            shadowColor: AppColors.primaryBlue.withOpacity(0.4),
+            shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
           ),
           child: _isLoading
               ? const SizedBox(
@@ -312,7 +505,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -341,6 +534,13 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       return;
     }
 
+    if (_selectedDate == null || _selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a date and time")),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -355,6 +555,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       description: _descriptionController.text.trim(),
       location: "Simulated Location",
       timestamp: DateTime.now(),
+      scheduledDate: _selectedDate,
+      scheduledTime: _selectedTime,
       status: BookingStatus.pending,
       price: null,
     );
@@ -365,7 +567,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       setState(() {
         _isLoading = false;
       });
-      _showBookingDialog(context);
+      if (!mounted) return;
+      _showBookingDialog(this.context);
     }
   }
 
@@ -407,6 +610,35 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.outfit(color: AppColors.textGrey),
             ),
+            if (_selectedDate != null && _selectedTime != null) ...[
+              const SizedBox(height: 15),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.event,
+                      color: AppColors.primaryBlue,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "${DateFormat('MMM d, yyyy').format(_selectedDate!)} at $_selectedTime",
+                      style: GoogleFonts.outfit(
+                        color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,

@@ -8,6 +8,8 @@ class Booking {
   final String description;
   final String location;
   final DateTime timestamp;
+  final DateTime? scheduledDate;
+  final String? scheduledTime;
   BookingStatus status;
   final double? price;
 
@@ -19,6 +21,8 @@ class Booking {
     required this.description,
     required this.location,
     required this.timestamp,
+    this.scheduledDate,
+    this.scheduledTime,
     this.status = BookingStatus.pending,
     this.price,
   });
@@ -31,6 +35,8 @@ class Booking {
     String? description,
     String? location,
     DateTime? timestamp,
+    DateTime? scheduledDate,
+    String? scheduledTime,
     BookingStatus? status,
     double? price,
   }) {
@@ -42,6 +48,8 @@ class Booking {
       description: description ?? this.description,
       location: location ?? this.location,
       timestamp: timestamp ?? this.timestamp,
+      scheduledDate: scheduledDate ?? this.scheduledDate,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
       status: status ?? this.status,
       price: price ?? this.price,
     );

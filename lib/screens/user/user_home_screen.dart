@@ -3,8 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
 
 import 'tabs/home_tab.dart';
-// import 'tabs/bookings_tab.dart'; // Coming soon
-// import 'tabs/profile_tab.dart'; // Coming soon
+import 'tabs/bookings_tab.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -18,7 +17,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   final List<Widget> _tabs = [
     const HomeTab(),
-    const Center(child: Text("Bookings (Coming Soon)")),
+    const BookingsTab(),
     const Center(child: Text("Profile (Coming Soon)")),
   ];
 
@@ -29,8 +28,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       body: _tabs[_currentIndex],
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
-          indicatorColor: AppColors.primaryBlue.withOpacity(0.1),
-          labelTextStyle: MaterialStateProperty.all(
+          indicatorColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+          labelTextStyle: WidgetStateProperty.all(
             GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ),
@@ -44,7 +43,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
           elevation: 10,
-          shadowColor: Colors.black.withOpacity(0.1),
+          shadowColor: Colors.black.withValues(alpha: 0.1),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined),

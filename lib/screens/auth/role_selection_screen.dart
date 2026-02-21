@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../services/auth_service.dart';
 import '../../models/user_role.dart';
-import '../user/user_home_screen.dart';
-import '../owner/owner_dashboard_screen.dart';
-import '../provider/provider_dashboard_screen.dart';
+import 'customer_login_screen.dart';
+import 'owner_login_screen.dart';
+import 'provider_login_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -69,9 +67,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       title: 'Service Provider',
                       subtitle: 'Receive jobs & track requests',
                       icon: Icons.engineering_rounded,
-                      color: const Color(
-                        0xFF43A047,
-                      ), // Keep Green for distinctiveness or move to Blue/Amber mix
+                      color: const Color(0xFF43A047),
                       role: UserRole.provider,
                       delay: 200,
                     ),
@@ -96,24 +92,21 @@ class RoleSelectionScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: () {
-        final authService = Provider.of<AuthService>(context, listen: false);
-        authService.setRole(role);
-
         Widget nextScreen;
         switch (role) {
           case UserRole.user:
-            nextScreen = const UserHomeScreen();
+            nextScreen = const CustomerLoginScreen();
             break;
           case UserRole.owner:
-            nextScreen = const OwnerDashboardScreen();
+            nextScreen = const OwnerLoginScreen();
             break;
           case UserRole.provider:
-            nextScreen = const ProviderDashboardScreen();
+            nextScreen = const ProviderLoginScreen();
             break;
         }
 
         if (context.mounted) {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => nextScreen),
           );
@@ -126,19 +119,19 @@ class RoleSelectionScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: color.withOpacity(0.1), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(icon, color: color, size: 30),

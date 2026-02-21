@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/product_service.dart';
+import '../../../utils/app_colors.dart';
 import '../../auth/login_screen.dart';
 import '../cart_screen.dart';
-import '../../../utils/app_colors.dart';
+import '../products/product_catalog_screen.dart';
+import '../products/product_details_screen.dart';
+import '../services/service_booking_screen.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final productService = Provider.of<ProductService>(context);
+    final products = productService.products;
+
     return Scaffold(
       backgroundColor: AppColors.scaffoldWhite,
       appBar: AppBar(
@@ -87,7 +93,6 @@ class HomeTab extends StatelessWidget {
             ),
 
             // 2. Promo Banner
-            // 2. Promo Banner
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               width: double.infinity,
@@ -97,7 +102,7 @@ class HomeTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   ),
@@ -111,7 +116,7 @@ class HomeTab extends StatelessWidget {
                     child: Icon(
                       Icons.bolt,
                       size: 180,
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
                   Padding(
@@ -152,7 +157,7 @@ class HomeTab extends StatelessWidget {
                           "Up to 40% off on\nCooling Appliances",
                           style: GoogleFonts.outfit(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -164,7 +169,63 @@ class HomeTab extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // 3. Categories
+            // 3. Quick Actions
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Quick Actions",
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textBlack,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickAction(
+                      context,
+                      icon: Icons.bolt,
+                      label: "Book Electrician",
+                      color: AppColors.primaryBlue,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ServiceBookingScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickAction(
+                      context,
+                      icon: Icons.shopping_bag_outlined,
+                      label: "Browse Products",
+                      color: AppColors.accentAmber,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ProductCatalogScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // 4. Categories
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -178,12 +239,22 @@ class HomeTab extends StatelessWidget {
                       color: AppColors.textBlack,
                     ),
                   ),
-                  Text(
-                    "See All",
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProductCatalogScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "See All",
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        color: AppColors.primaryGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -196,18 +267,22 @@ class HomeTab extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 children: [
-                  _buildCategoryItem("Electrical", Icons.electrical_services),
-                  _buildCategoryItem("Lighting", Icons.light),
-                  _buildCategoryItem("Tools", Icons.build),
-                  _buildCategoryItem("Repairs", Icons.handyman),
-                  _buildCategoryItem("Smart Home", Icons.sensors),
+                  _buildCategoryItem(
+                    context,
+                    "Electrical",
+                    Icons.electrical_services,
+                  ),
+                  _buildCategoryItem(context, "Lighting", Icons.light),
+                  _buildCategoryItem(context, "Tools", Icons.build),
+                  _buildCategoryItem(context, "Repairs", Icons.handyman),
+                  _buildCategoryItem(context, "Smart Home", Icons.sensors),
                 ],
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // 4. Featured Products
+            // 5. Featured Products
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -221,12 +296,22 @@ class HomeTab extends StatelessWidget {
                       color: AppColors.textBlack,
                     ),
                   ),
-                  Text(
-                    "See All",
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProductCatalogScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "See All",
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        color: AppColors.primaryGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -245,9 +330,9 @@ class HomeTab extends StatelessWidget {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
-              itemCount: 4,
+              itemCount: products.length > 4 ? 4 : products.length,
               itemBuilder: (context, index) {
-                return _buildProductCard(index);
+                return _buildProductCard(context, products[index]);
               },
             ),
 
@@ -258,133 +343,200 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryItem(String title, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
+  Widget _buildQuickAction(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
                 ),
-              ],
+              ),
             ),
-            child: Icon(icon, color: AppColors.primaryGreen, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              color: AppColors.textBlack,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+            Icon(Icons.arrow_forward_ios, size: 14, color: color),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildProductCard(int index) {
-    final List<Map<String, String>> products = [
-      {"name": "Smart LED Bulb", "price": "\$15.00", "image": ""},
-      {"name": "Power Drill Set", "price": "\$89.99", "image": ""},
-      {"name": "Ceiling Fan", "price": "\$45.50", "image": ""},
-      {"name": "Extension Cord", "price": "\$12.99", "image": ""},
-    ];
-
-    final product = products[index % products.length];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  Widget _buildCategoryItem(BuildContext context, String title, IconData icon) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ProductCatalogScreen()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: AppColors.primaryGreen, size: 28),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: AppColors.textBlack,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.image,
-                  size: 50,
-                  color: Colors.grey.withValues(alpha: 0.5),
+    );
+  }
+
+  Widget _buildProductCard(BuildContext context, dynamic product) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailsScreen(product: product),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFFF5F5F5),
+                    child: Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 50,
+                        color: Colors.grey.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product["name"]!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textBlack,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Electrical",
-                  style: GoogleFonts.outfit(
-                    fontSize: 10,
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      product["price"]!,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryGreen,
-                      ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textBlack,
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryGreen,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.category,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      color: AppColors.textGrey,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "₹${product.price}",
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryGreen,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
