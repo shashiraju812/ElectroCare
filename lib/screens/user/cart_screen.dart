@@ -240,7 +240,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
           content: Text(
-            "Order Placed Successfully!",
+            "ఆర్డర్ అయింది! | Order Placed! 🎉\nऑर्डर हो गया!",
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(fontSize: 18),
           ),

@@ -40,6 +40,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     "06:00 PM",
   ];
 
+  final TextEditingController _addressController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +53,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     _debounce?.cancel();
     _descriptionController.removeListener(_onDescriptionChanged);
     _descriptionController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -131,8 +134,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'Book Electrician',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          '⚡ Book Electrician  •  ఎలక్ట్రీషియన్ బుక్ చేయండి',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ),
       body: SingleChildScrollView(
@@ -145,9 +148,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Select Service Type",
+                  "Service Type  •  సేవా రకం",
                   style: GoogleFonts.outfit(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
                   ),
@@ -184,23 +187,29 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 _buildChip("Inspection"),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 22),
 
             // Description
             Text(
-              "Describe Issue",
+              "Describe Issue  •  సమస్య చెప్పండి",
               style: GoogleFonts.outfit(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 6),
+            Text(
+              "మీ సమస్యను వివరించండి  •  अपनी समस्या बताएं",
+              style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: "E.g. Switch board sparkling...",
+                hintText:
+                    "E.g. Switch board sparkling...  •  ఉదా: స్విచ్ బోర్డ్ మంటలు...",
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -216,13 +225,50 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 22),
+
+            // Address field
+            Text(
+              "Your Address  •  మీ చిరునామా",
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _addressController,
+              maxLines: 2,
+              decoration: InputDecoration(
+                hintText:
+                    "House No., Street, Village, District  •  ఇల్లు, వీధి, గ్రామం",
+                prefixIcon: const Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.primaryBlue,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: const BorderSide(
+                    color: AppColors.primaryBlue,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
 
             // Schedule Date & Time
             Text(
-              "Schedule Date & Time",
+              "Schedule  •  షెడ్యూల్",
               style: GoogleFonts.outfit(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
               ),
@@ -363,70 +409,106 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Mock Map View
+            const SizedBox(height: 22),
+
+            // ─── Location Map (custom) ─────────────────────
+            Text(
+              "Service Location  •  సేవా స్థానం",
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
             Container(
-              height: 200,
+              height: 160,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(20),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    "https://via.placeholder.com/600x300?text=Map+Location+Placeholder",
-                  ),
-                  fit: BoxFit.cover,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE3F2FD), Color(0xFFE8EAF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                border: Border.all(color: Colors.blue.shade100, width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Grid lines simulating a map
+                  CustomPaint(
+                    size: const Size(double.infinity, 160),
+                    painter: _MapGridPainter(),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Row(
+                  // Location pin
+                  Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: AppColors.errorRed,
-                        size: 16,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryBlue.withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Simulated Location",
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "We'll send the nearest electrician 📍",
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: AppColors.primaryBlue,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Text(
-              "We will assign the nearest electrician.",
+              "దగ్గరలో ఉన్న ఎలక్ట్రీషియన్‌ను పంపుతాం  •  निकटतम इलेक्ट्रीशियन भेजेंगे",
               style: GoogleFonts.outfit(
                 color: AppColors.textGrey,
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
           ],
@@ -470,10 +552,10 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     const Icon(Icons.bolt, color: AppColors.accentAmber),
                     const SizedBox(width: 8),
                     Text(
-                      "Book Now",
+                      "Book Now  •  ఇప్పుడే బుక్ చేయండి",
                       style: GoogleFonts.outfit(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -529,14 +611,24 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
     if (_descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please describe the issue")),
+        SnackBar(
+          content: Text("Please describe the issue  •  సమస్యను వివరించండి"),
+          backgroundColor: Colors.orange[700],
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a date and time")),
+        SnackBar(
+          content: Text(
+            "Please select a date & time  •  తేదీ & సమయం ఎంచుకోండి",
+          ),
+          backgroundColor: Colors.orange[700],
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -553,7 +645,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       userId: authService.userName ?? "Guest User",
       serviceType: _selectedService,
       description: _descriptionController.text.trim(),
-      location: "Simulated Location",
+      location: _addressController.text.trim().isNotEmpty
+          ? _addressController.text.trim()
+          : "Location not provided",
       timestamp: DateTime.now(),
       scheduledDate: _selectedDate,
       scheduledTime: _selectedTime,
@@ -597,18 +691,21 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
             const SizedBox(height: 20),
             Text(
-              "Booking Confirmed!",
+              "బుకింగ్ నిర్ధారించబడింది! Booking Confirmed! 🎉",
               style: GoogleFonts.outfit(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              "We are searching for nearby electricians for your '$_selectedService' request.",
+              "మేము మీ '$_selectedService' అభ్యర్థన కోసం దగ్గరలో ఉన్న ఎలక్ట్రీషియన్‌ను వెతుకుతున్నాం.",
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: AppColors.textGrey),
+              style: GoogleFonts.outfit(
+                color: AppColors.textGrey,
+                fontSize: 13,
+              ),
             ),
             if (_selectedDate != null && _selectedTime != null) ...[
               const SizedBox(height: 15),
@@ -664,4 +761,27 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       ),
     );
   }
+}
+
+/// Custom painter that draws a simple grid to simulate a map background
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blue.shade200.withValues(alpha: 0.35)
+      ..strokeWidth = 1;
+
+    const spacing = 28.0;
+    // Horizontal lines
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+    // Vertical lines
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

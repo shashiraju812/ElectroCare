@@ -201,7 +201,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       style: const TextStyle(color: AppColors.textDark),
                       enabled: !_otpSent,
                       decoration: InputDecoration(
-                        labelText: _isEmailLogin ? "Email" : "Phone",
+                        labelText: _isEmailLogin ? "Email" : "Phone Number",
+                        hintText: _isEmailLogin
+                            ? "demo@electrocare.app"
+                            : "9876543210",
                         prefixIcon: Icon(
                           _isEmailLogin
                               ? Icons.email_outlined
@@ -220,6 +223,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         style: const TextStyle(color: AppColors.textDark),
                         decoration: InputDecoration(
                           labelText: _usePassword ? "Password" : "OTP Code",
+                          hintText: _usePassword ? "password123" : "Try: 1234",
+                          helperText: _usePassword
+                              ? "Demo: use 'password123'"
+                              : "Demo: use '1234'",
+                          helperStyle: TextStyle(
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.bold,
+                          ),
                           prefixIcon: Icon(
                             Icons.lock_outline,
                             color: _themeColor,
@@ -308,9 +319,48 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 ),
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1),
 
-              const SizedBox(height: 24),
+              // --- GUEST MODE BUTTON ---
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final authService = Provider.of<AuthService>(
+                      context,
+                      listen: false,
+                    );
+                    await authService.loginWithGoogle(); // reuses mock auth
+                    authService.setRole(UserRole.user);
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const UserHomeScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.person_outline, size: 22),
+                  label: Text(
+                    "Continue as Guest  (No login needed)",
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _themeColor,
+                    side: const BorderSide(color: _themeColor, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
 
               // Create Account
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

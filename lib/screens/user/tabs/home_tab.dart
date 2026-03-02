@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/product_service.dart';
+import '../../../services/cart_service.dart';
+import '../../../services/order_service.dart';
+import '../../../models/product_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../auth/login_screen.dart';
 import '../cart_screen.dart';
@@ -120,43 +123,44 @@ class HomeTab extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: 8,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.accentAmber,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             "Limited Offer",
                             style: GoogleFonts.outfit(
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 5),
                         Text(
                           "Summer Sale",
                           style: GoogleFonts.outfit(
-                            fontSize: 26,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           "Up to 40% off on\nCooling Appliances",
                           style: GoogleFonts.outfit(
-                            fontSize: 16,
+                            fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
@@ -449,90 +453,201 @@ class HomeTab extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
+              child: Container(
+                height: 110,
+                width: double.infinity,
+                color: const Color(0xFFF0F4FF),
+                padding: const EdgeInsets.all(14),
                 child: Image.network(
                   product.imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: const Color(0xFFF5F5F5),
-                    child: Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 50,
-                        color: Colors.grey.withValues(alpha: 0.5),
-                      ),
+                  fit: BoxFit.contain,
+                  errorBuilder: (ctx, e, s) => const Center(
+                    child: Icon(
+                      Icons.electrical_services,
+                      size: 40,
+                      color: Colors.grey,
                     ),
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textBlack,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.category,
-                    style: GoogleFonts.outfit(
-                      fontSize: 10,
-                      color: AppColors.textGrey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "₹${product.price}",
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryGreen,
-                        ),
+            // Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.category ?? '',
+                      style: GoogleFonts.outfit(
+                        fontSize: 9,
+                        color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryGreen,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textBlack,
+                        height: 1.3,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "₹${product.price}",
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.orange[800],
+                      ),
+                    ),
+                    const Spacer(),
+                    // Add to Cart + Buy Now
+                    Row(
+                      children: [
+                        // Cart icon
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Provider.of<CartService>(
+                                context,
+                                listen: false,
+                              ).addToCart(product);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: AppColors.primaryBlue,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  content: Text(
+                                    "Added to Cart! 🛒",
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 32),
+                              foregroundColor: AppColors.primaryBlue,
+                              side: const BorderSide(
+                                color: AppColors.primaryBlue,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_cart_outlined,
+                              size: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        // Buy Now
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final orderService = Provider.of<OrderService>(
+                                context,
+                                listen: false,
+                              );
+                              final authService = Provider.of<AuthService>(
+                                context,
+                                listen: false,
+                              );
+                              final item = CartItem(
+                                product: product,
+                                quantity: 1,
+                              );
+                              await orderService.placeOrder(
+                                authService.userName ?? "Customer",
+                                [item],
+                                product.price,
+                              );
+                              if (!context.mounted) return;
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  title: const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 50,
+                                  ),
+                                  content: Text(
+                                    "ఆర్డర్ అయింది! | Order Placed!\nऑर्डर हो गया! 🎉",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text("OK"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 32),
+                              backgroundColor: Colors.orange[700],
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              "Buy Now",
+                              style: GoogleFonts.outfit(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
