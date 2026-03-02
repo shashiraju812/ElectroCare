@@ -1,8 +1,10 @@
 // screens/product_screen.dart
 import 'package:flutter/material.dart';
-import '../cart_data.dart';
+import 'package:provider/provider.dart';
+import '../services/product_service.dart';
 import 'cart_screen.dart';
 import 'product_details_screen.dart';
+import '../cart_data.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -12,80 +14,70 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-
-  final List<Map<String, String>> allProducts = [
-    {
-      "name": "LED Bulb",
-      "price": "₹120",
-      "image": "https://via.placeholder.com/100?text=Bulb"
-    },
-    {
-      "name": "Switch Board",
-      "price": "₹250",
-      "image": "https://via.placeholder.com/100?text=Switch"
-    },
-    {
-      "name": "Wire (1m)",
-      "price": "₹40",
-      "image": "https://via.placeholder.com/100?text=Wire"
-    },
-    {
-      "name": "Extension Box",
-      "price": "₹350",
-      "image": "https://via.placeholder.com/100?text=Box"
-    },
-  ];
-
-  List<Map<String, String>> filteredProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredProducts = allProducts;
-  }
-
-  void searchProducts(String query) {
-    setState(() {
-      filteredProducts = allProducts
-          .where((product) =>
-              product["name"]!.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-  }
+  String searchQuery = "";
 
   void addToCart(BuildContext context, String name, String price) {
-    CartData.items.add({
-      "name": name,
-      "price": price,
-      "qty": 1,
-    });
+    CartData.items.add({"name": name, "price": price, "qty": 1});
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CartScreen(),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("$name added to cart"),
+        action: SnackBarAction(
+          label: "VIEW",
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            );
+          },
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final productService = Provider.of<ProductService>(context);
+    final products = productService.searchProducts(searchQuery);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Products")),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text(
+          "Premium Products",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            ),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(10),
+          // Search bar with modern styling
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.white,
             child: TextField(
-              onChanged: searchProducts,
+              onChanged: (value) => setState(() => searchQuery = value),
               decoration: InputDecoration(
-                hintText: "Search products...",
-                prefixIcon: const Icon(Icons.search),
+                hintText: "Search electrical items...",
+                prefixIcon: const Icon(Icons.search, color: Colors.blue),
+                filled: true,
+                fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
           ),
@@ -93,69 +85,133 @@ class _ProductScreenState extends State<ProductScreen> {
           // Product Grid
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.8,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.75,
               ),
-              itemCount: filteredProducts.length,
+              itemCount: products.length,
               itemBuilder: (context, index) {
-                final product = filteredProducts[index];
+                final product = products[index];
 
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(
-                          name: product["name"]!,
-                          price: product["price"]!,
-                          image: product["image"]!,
-                        ),
+                        builder: (context) =>
+                            ProductDetailsScreen(product: product),
                       ),
                     );
                   },
-                  child: Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-
-                          Image.network(
-                            product["image"]!,
-                            height: 60,
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-                            product["name"]!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
-                          ),
-
-                          Text(product["price"]!),
-
-                          const SizedBox(height: 8),
-
-                          ElevatedButton(
-                            onPressed: () => addToCart(
-                              context,
-                              product["name"]!,
-                              product["price"]!,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Image Container
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
                             ),
-                            child: const Text("Buy"),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Hero(
+                                tag: product.id,
+                                child: Image.network(
+                                  product.imageUrl,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.electrical_services,
+                                        size: 50,
+                                      ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.category.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.blue[800],
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                product.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "₹${product.price.toStringAsFixed(0)}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 16,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: IconButton(
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.all(4),
+                                      icon: const Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => addToCart(
+                                        context,
+                                        product.name,
+                                        "₹${product.price}",
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );

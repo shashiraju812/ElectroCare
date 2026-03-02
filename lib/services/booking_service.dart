@@ -61,4 +61,22 @@ class BookingService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> returnBooking(String bookingId) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final index = _bookings.indexWhere((b) => b.id == bookingId);
+    if (index != -1) {
+      final booking = _bookings[index];
+      // Validation: Must be from app and completed to be "returned" or "written"
+      if (booking.isAppBooking && booking.status == BookingStatus.completed) {
+        _bookings[index] = booking.copyWith(
+          status: BookingStatus
+              .cancelled, // Using cancelled as a proxy for returned
+        );
+        notifyListeners();
+        return true;
+      }
+    }
+    return false;
+  }
 }

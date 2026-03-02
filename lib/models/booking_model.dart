@@ -12,6 +12,7 @@ class Booking {
   final String? scheduledTime;
   BookingStatus status;
   final double? price;
+  final bool isAppBooking;
 
   Booking({
     required this.id,
@@ -25,6 +26,7 @@ class Booking {
     this.scheduledTime,
     this.status = BookingStatus.pending,
     this.price,
+    this.isAppBooking = true,
   });
 
   Booking copyWith({
@@ -39,6 +41,7 @@ class Booking {
     String? scheduledTime,
     BookingStatus? status,
     double? price,
+    bool? isAppBooking,
   }) {
     return Booking(
       id: id ?? this.id,
@@ -52,6 +55,7 @@ class Booking {
       scheduledTime: scheduledTime ?? this.scheduledTime,
       status: status ?? this.status,
       price: price ?? this.price,
+      isAppBooking: isAppBooking ?? this.isAppBooking,
     );
   }
 }
