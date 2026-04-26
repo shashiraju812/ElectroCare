@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "200399727960",
+    "project_id": "electrocare-fd844",
+    "storage_bucket": "electrocare-fd844.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200399727960:android:1839b9de15333720b7892d",
+        "android_client_info": {
+          "package_name": "Electrocare.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5FXf6sIQz5mtXWPmcmS7rw_4ngwfopno"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

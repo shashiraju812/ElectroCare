@@ -18,11 +18,13 @@ class ServiceBookingScreen extends StatefulWidget {
 }
 
 class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
-  String _selectedService = "Wiring";
+  String _selectedService = 'Wiring';
   final TextEditingController _descriptionController = TextEditingController();
   Timer? _debounce;
   bool _isLoading = false;
   bool _isAiSuggesting = false;
+  String? _aiPriceRange;   // Set by AI classifier
+  String? _aiUrgency;       // Set by AI classifier
 
   // Scheduling fields
   DateTime? _selectedDate;
@@ -68,36 +70,42 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     });
   }
 
-  void _predictCategory() {
+  // ── AI Category prediction — debounced, async ──────────────────
+  void _predictCategory() async {
+    if (!mounted) return;
     setState(() => _isAiSuggesting = true);
 
-    Future.delayed(const Duration(milliseconds: 600), () {
+    try {
+      final result = await AiService.classifyBookingRequest(
+        _descriptionController.text,
+      );
       if (!mounted) return;
-      final predicted = AiService.predictCategory(_descriptionController.text);
-      if (predicted != _selectedService) {
-        setState(() {
-          _selectedService = predicted;
-          _isAiSuggesting = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                Text("Smartly switched to '$predicted'"),
-              ],
-            ),
-            backgroundColor: AppColors.primaryBlue,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else {
-        setState(() => _isAiSuggesting = false);
-      }
-    });
+      setState(() {
+        _selectedService = result.category;
+        _isAiSuggesting = false;
+        // Show estimated price from AI
+        _aiPriceRange = result.priceRange;
+        _aiUrgency = result.urgency;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Expanded(child: Text(
+              '✨ AI suggests: ${result.category} • Est. ₹${result.priceRange}',
+              style: const TextStyle(color: Colors.white),
+            )),
+          ]),
+          backgroundColor: AppColors.primaryBlue,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } catch (e) {
+      if (mounted) setState(() => _isAiSuggesting = false);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -177,16 +185,36 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ],
             ),
             const SizedBox(height: 15),
+            // Service Type chips — add Emergency
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: [
-                _buildChip("Wiring"),
-                _buildChip("Installation"),
-                _buildChip("Repair"),
-                _buildChip("Inspection"),
+                _buildChip('Wiring'),
+                _buildChip('Installation'),
+                _buildChip('Repair'),
+                _buildChip('Inspection'),
+                _buildChip('Emergency'),
               ],
             ),
+            // AI price estimate badge
+            if (_aiPriceRange != null) ...[  
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.psychology, color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  Text('AI Estimate: ₹$_aiPriceRange • Urgency: $_aiUrgency',
+                    style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                ]),
+              ),
+            ],
             const SizedBox(height: 22),
 
             // Description
@@ -612,7 +640,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     if (_descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please describe the issue  •  సమస్యను వివరించండి"),
+          content: const Text("Please describe the issue  •  సమస్యను వివరించండి"),
           backgroundColor: Colors.orange[700],
           behavior: SnackBarBehavior.floating,
         ),
@@ -623,7 +651,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: const Text(
             "Please select a date & time  •  తేదీ & సమయం ఎంచుకోండి",
           ),
           backgroundColor: Colors.orange[700],
@@ -633,40 +661,43 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 2));
+    // Run real AI classification first
+    ServiceClassification? aiResult;
+    try {
+      aiResult = await AiService.classifyBookingRequest(_descriptionController.text.trim());
+    } catch (_) {}
 
     final newBooking = Booking(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userId: authService.userName ?? "Guest User",
-      serviceType: _selectedService,
+      userId: authService.userId ?? 'guest',
+      userName: authService.userName ?? 'Guest User',
+      userPhone: authService.currentUser?.phone ?? '',
+      serviceType: aiResult?.category ?? _selectedService,
       description: _descriptionController.text.trim(),
       location: _addressController.text.trim().isNotEmpty
           ? _addressController.text.trim()
-          : "Location not provided",
+          : 'Location not provided',
       timestamp: DateTime.now(),
       scheduledDate: _selectedDate,
       scheduledTime: _selectedTime,
       status: BookingStatus.pending,
-      price: null,
+      estimatedPrice: aiResult != null
+          ? double.tryParse(aiResult.priceRange.split('-').first)
+          : null,
+      aiCategory: aiResult?.category,
+      urgency: aiResult?.urgency,
     );
 
     await bookingService.createBooking(newBooking);
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (!mounted) return;
-      _showBookingDialog(this.context);
-    }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    _showBookingDialog();
   }
 
-  void _showBookingDialog(BuildContext context) {
+  void _showBookingDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,

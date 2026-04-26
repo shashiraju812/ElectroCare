@@ -5,7 +5,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../models/product_model.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/order_service.dart';
+import '../../../services/language_service.dart';
 import '../../../utils/app_colors.dart';
+import '../../../utils/app_translations.dart';
 import '../../auth/role_selection_screen.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -15,13 +17,12 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
     final orderService = Provider.of<OrderService>(context);
-    final orders = orderService.orders;
-    final name = auth.userName ?? "Guest";
-    final initials = name
-        .split(' ')
-        .take(2)
-        .map((e) => e.isNotEmpty ? e[0].toUpperCase() : '')
-        .join();
+    final orders = orderService.allOrders;
+    final user = auth.currentUser;
+    final name = user?.name ?? auth.userName ?? 'Guest';
+    final phone = user?.phone ?? '';
+    final email = user?.email ?? '';
+    final initials = user?.initials ?? (name.isNotEmpty ? name[0].toUpperCase() : '?');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
@@ -105,7 +106,7 @@ class ProfileTab extends StatelessWidget {
             ).animate().fadeIn(duration: 400.ms),
           ),
 
-          SliverToBoxAdapter(child: const SizedBox(height: 20)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
           // ─── Account Info ──────────────────────────────────────
           SliverToBoxAdapter(
@@ -119,12 +120,13 @@ class ProfileTab extends StatelessWidget {
                   _infoCard([
                     _infoRow(Icons.person, "Name  •  పేరు", name),
                     const Divider(height: 1),
-                    _infoRow(Icons.phone, "Phone  •  ఫోన్", "9876543210"),
+                    _infoRow(Icons.phone, "Phone  •  ఫోన్",
+                      phone.isNotEmpty ? phone : 'Not set — tap to add'),
                     const Divider(height: 1),
                     _infoRow(
                       Icons.email_outlined,
                       "Email  •  ఇమెయిల్",
-                      "demo@electrocare.app",
+                      email.isNotEmpty ? email : 'Not set',
                     ),
                   ]),
                 ],
@@ -132,7 +134,7 @@ class ProfileTab extends StatelessWidget {
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05),
           ),
 
-          SliverToBoxAdapter(child: const SizedBox(height: 20)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
           // ─── Recent Orders ─────────────────────────────────────
           SliverToBoxAdapter(
@@ -194,7 +196,7 @@ class ProfileTab extends StatelessWidget {
             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05),
           ),
 
-          SliverToBoxAdapter(child: const SizedBox(height: 20)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
           // ─── Settings / Options ────────────────────────────────
           SliverToBoxAdapter(
@@ -263,59 +265,64 @@ class ProfileTab extends StatelessWidget {
             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05),
           ),
 
-          SliverToBoxAdapter(child: const SizedBox(height: 40)),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
     );
   }
 
   void _showLanguageSheet(BuildContext context) {
+    final langService = context.read<LanguageService>();
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
-              "Select Language  •  భాష ఎంచుకోండి",
+              AppTranslations.tr('select_language', langService.currentCode),
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
-            _langOption(ctx, "🇬🇧", "English", "English"),
-            _langOption(ctx, "🇮🇳", "తెలుగు", "Telugu"),
-            _langOption(ctx, "🇮🇳", "हिंदी", "Hindi"),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            ...LanguageService.supportedLanguages.map((lang) {
+              final isSelected = lang.code == langService.currentCode;
+              return ListTile(
+                leading: Text(lang.flag, style: const TextStyle(fontSize: 24)),
+                title: Text(lang.name,
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                subtitle: Text(lang.nativeName,
+                  style: GoogleFonts.outfit(color: AppColors.textGrey)),
+                trailing: isSelected
+                    ? const Icon(Icons.check_circle, color: AppColors.primaryBlue)
+                    : null,
+                selected: isSelected,
+                selectedTileColor: AppColors.primaryBlue.withValues(alpha: 0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+                onTap: () {
+                  langService.setLanguage(lang.code);
+                  Navigator.pop(ctx);
+                },
+              );
+            }),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _langOption(
-    BuildContext ctx,
-    String flag,
-    String label,
-    String sublabel,
-  ) {
-    return ListTile(
-      leading: Text(flag, style: const TextStyle(fontSize: 28)),
-      title: Text(
-        label,
-        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-      subtitle: Text(
-        sublabel,
-        style: GoogleFonts.outfit(color: Colors.grey, fontSize: 12),
-      ),
-      trailing: const Icon(Icons.check_circle, color: AppColors.primaryGreen),
-      onTap: () => Navigator.pop(ctx),
     );
   }
 

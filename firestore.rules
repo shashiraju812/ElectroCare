@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper Functions ─────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isShopOwner() {
+      return isSignedIn() && getUserRole() == 'owner';
+    }
+
+    function isProvider() {
+      return isSignedIn() && getUserRole() == 'provider';
+    }
+
+    function isCustomer() {
+      return isSignedIn() && getUserRole() == 'user';
+    }
+
+    // ── Users ─────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Anyone signed in can read user profiles (for provider info)
+      allow read: if isSignedIn();
+      // Only the user can write their own document
+      allow create: if isSignedIn() && isOwner(uid);
+      allow update: if isSignedIn() && isOwner(uid);
+      allow delete: if false; // Soft-delete only — never hard delete users
+    }
+
+    // ── Products ──────────────────────────────────────────────────
+    match /products/{productId} {
+      // Any authenticated user can view products
+      allow read: if isSignedIn();
+      // Only shop owners can create/update/delete products
+      allow create: if isShopOwner();
+      allow update: if isShopOwner();
+      allow delete: if isShopOwner();
+    }
+
+    // ── Orders ────────────────────────────────────────────────────
+    match /orders/{orderId} {
+      // Customer sees their own orders; owner sees all; provider sees none
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isShopOwner()
+      );
+      // Only customers can create orders
+      allow create: if isCustomer() && request.resource.data.userId == request.auth.uid;
+      // Owner can update order status (shipped, delivered, etc.)
+      allow update: if isShopOwner();
+      allow delete: if false;
+    }
+
+    // ── Bookings ──────────────────────────────────────────────────
+    match /bookings/{bookingId} {
+      // Customer: sees their bookings; Provider: sees pending + their accepted; Owner: sees all
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.providerId == request.auth.uid ||
+        resource.data.status == 'pending' ||
+        isShopOwner()
+      );
+      // Only customers can create bookings
+      allow create: if isCustomer() &&
+        request.resource.data.userId == request.auth.uid;
+      // Customer can cancel their own; Provider can accept/update their accepted jobs
+      allow update: if isSignedIn() && (
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.providerId == request.auth.uid) ||
+        (isProvider() && resource.data.status == 'pending')
+      );
+      allow delete: if false; // Never delete bookings — audit trail
+    }
+
+    // ── Reviews ───────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      // Anyone signed in can read reviews
+      allow read: if isSignedIn();
+      // Only the review author can create/update
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Notifications ─────────────────────────────────────────────
+    match /notifications/{notifId} {
+      // Only the recipient can read/delete their notifications
+      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Only Cloud Functions should write notifications (not client)
+      allow create, update: if false;
+    }
+  }
+}

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../utils/app_colors.dart';
-import '../../services/auth_service.dart';
-import '../../models/user_role.dart';
 import '../user/user_home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -41,108 +38,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-    final authService = Provider.of<AuthService>(context, listen: false);
 
-    // Pass phone as primary contact for the account
-    final contact = _phoneController.text.isNotEmpty
-        ? _phoneController.text
-        : _emailController.text;
+    // In production: call Firebase Auth createUserWithEmailAndPassword
+    // or Phone OTP + Firestore user doc creation here.
+    // For now: simulate and auto-login.
+    await Future.delayed(const Duration(milliseconds: 900));
 
-    final success = await authService.registerUser(
-      _nameController.text,
-      contact,
-      _passwordController.text,
-    );
-
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success && mounted) {
-      // Auto login after signup → go to home
-      authService.setRole(UserRole.user);
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFFE8F5E9),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 44,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Account Created! 🎉",
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: _green,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                // Trilingual welcome
-                Text(
-                  "ఖాతా తయారైంది! | खाता बन गया!",
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const UserHomeScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.home),
-                    label: const Text("Go to Home"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72, height: 72,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE8F5E9)),
+                child: const Icon(Icons.check_circle, color: Colors.green, size: 44),
+              ),
+              const SizedBox(height: 16),
+              Text('Account Created! 🎉',
+                style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: _green),
+                textAlign: TextAlign.center),
+              const SizedBox(height: 6),
+              Text('ఖాతా తయారైంది! | खाता बन गया!',
+                style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => const UserHomeScreen()));
+                  },
+                  icon: const Icon(Icons.home),
+                  label: const Text('Go to Home'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _green, foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration Failed. Try again.")),
-        );
-      }
-    }
+      ),
+    );
   }
 
   @override

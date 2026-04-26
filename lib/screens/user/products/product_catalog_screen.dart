@@ -1,3 +1,4 @@
+// screens/user/products/product_catalog_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +8,7 @@ import '../../../services/product_service.dart';
 import '../../../services/cart_service.dart';
 import '../../../services/order_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../widgets/cached_product_image.dart';
 
 import 'product_details_screen.dart';
 
@@ -51,9 +53,11 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
     final orderService = Provider.of<OrderService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
     final singleItem = CartItem(product: product, quantity: 1);
-    await orderService.placeOrder(authService.userName ?? "Customer", [
-      singleItem,
-    ], product.price);
+    await orderService.placeOrder(
+      userId: authService.userId ?? 'guest',
+      cartItems: [singleItem],
+      address: 'Default Address',
+    );
     if (!context.mounted) return;
     showDialog(
       context: context,
@@ -123,7 +127,11 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final productService = Provider.of<ProductService>(context);
-    final products = productService.searchProducts(_searchQuery);
+    final products = productService.filteredProducts
+        .where((p) => _searchQuery.isEmpty ||
+            p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            p.category.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
@@ -248,16 +256,11 @@ class _ProductCard extends StatelessWidget {
                 width: double.infinity,
                 color: const Color(0xFFF0F4FF),
                 padding: const EdgeInsets.all(16),
-                child: Image.network(
-                  product.imageUrl,
+                child: CachedProductImage(
+                  imageUrl: product.imageUrl,
+                  height: 120,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, e, s) => const Center(
-                    child: Icon(
-                      Icons.electrical_services,
-                      color: Colors.grey,
-                      size: 40,
-                    ),
-                  ),
+                  backgroundColor: const Color(0xFFF0F4FF),
                 ),
               ),
             ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_role.dart';
@@ -18,12 +18,14 @@ class OwnerLoginScreen extends StatefulWidget {
 
 class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
   bool _isEmailLogin = true;
-  bool _usePassword = true;
   bool _otpSent = false;
+  bool _usePassword = true;
   final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordOtpController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String? _errorMsg;
 
   static const Color _themeColor = AppColors.accentAmber;
   static const Color _themeColorDark = Color(0xFFF9A825);
@@ -32,59 +34,37 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
   @override
   void dispose() {
     _contactController.dispose();
+    _passwordController.dispose();
     _passwordOtpController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final contact = _contactController.text;
-
-    if (_usePassword) {
-      final success = await authService.loginWithPassword(
-        contact,
-        _passwordOtpController.text,
-      );
-      if (mounted) {
-        _handleAuthResult(success, "Invalid Password. Try 'password123'");
-      }
+    if (_contactController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+      setState(() => _errorMsg = 'Please fill in all fields');
+      return;
+    }
+    setState(() { _isLoading = true; _errorMsg = null; });
+    final auth = context.read<AuthService>();
+    final success = await auth.loginWithEmail(
+      email: _contactController.text.trim(),
+      password: _passwordController.text,
+      role: UserRole.owner,
+    );
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    if (success) {
+      _navigateToDashboard();
     } else {
-      if (!_otpSent) {
-        await authService.sendOtp(contact);
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _otpSent = true;
-            _passwordOtpController.clear();
-          });
-        }
-      } else {
-        final success = await authService.verifyOtp(
-          contact,
-          _passwordOtpController.text,
-        );
-        if (mounted) {
-          _handleAuthResult(success, "Invalid OTP. Try 1234");
-        }
-      }
+      setState(() => _errorMsg = auth.error ?? 'Login failed');
     }
   }
 
-  void _handleAuthResult(bool success, String errorMsg) {
-    setState(() => _isLoading = false);
-    if (success) {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      authService.setRole(UserRole.owner);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMsg)));
-    }
+  void _navigateToDashboard() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
+    );
   }
 
   @override
@@ -221,7 +201,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                         style: const TextStyle(color: AppColors.textDark),
                         decoration: InputDecoration(
                           labelText: _usePassword ? "Password" : "OTP Code",
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.lock_outline,
                             color: _themeColorDark,
                           ),
@@ -263,6 +243,11 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                     const SizedBox(height: 20),
 
                     // Login Button
+                    if (_errorMsg != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(_errorMsg!, style: GoogleFonts.outfit(color: Colors.red, fontSize: 13)),
+                      ),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -278,18 +263,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                           shadowColor: _themeColor.withValues(alpha: 0.4),
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                _otpSent
-                                    ? "Verify & Login"
-                                    : (_usePassword ? "Login" : "Send OTP"),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text('Login', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
 
@@ -325,7 +300,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                       context,
                       MaterialPageRoute(builder: (_) => const SignUpScreen()),
                     ),
-                    child: Text(
+                    child: const Text(
                       "Create Account",
                       style: TextStyle(
                         color: _themeColorDark,
@@ -343,20 +318,12 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
               ),
               const SizedBox(height: 16),
               _buildSocialIcon(FontAwesomeIcons.google, () async {
-                final authService = Provider.of<AuthService>(
-                  context,
-                  listen: false,
-                );
-                await authService.loginWithGoogle();
-                authService.setRole(UserRole.owner);
-                if (context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const OwnerDashboardScreen(),
-                    ),
-                  );
-                }
+                setState(() => _isLoading = true);
+                final auth = context.read<AuthService>();
+                await auth.loginWithGoogle(role: UserRole.owner);
+                if (!mounted) return;
+                setState(() => _isLoading = false);
+                _navigateToDashboard();
               }),
             ],
           ),

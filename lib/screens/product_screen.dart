@@ -38,7 +38,11 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   Widget build(BuildContext context) {
     final productService = Provider.of<ProductService>(context);
-    final products = productService.searchProducts(searchQuery);
+    final products = productService.filteredProducts
+        .where((p) => searchQuery.isEmpty ||
+            p.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+            p.category.toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
 
     return Scaffold(
       backgroundColor: Colors.grey[100],

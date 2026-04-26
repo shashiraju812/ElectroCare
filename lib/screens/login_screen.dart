@@ -15,15 +15,15 @@ class LoginScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            TextField(
-              decoration: const InputDecoration(labelText: "Email"),
+            const TextField(
+              decoration: InputDecoration(labelText: "Email"),
             ),
 
             const SizedBox(height: 15),
 
-            TextField(
+            const TextField(
               obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: InputDecoration(labelText: "Password"),
             ),
 
             const SizedBox(height: 20),

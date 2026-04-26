@@ -11,11 +11,11 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("ElectroCare"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: const Padding(
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               "Welcome",
               style: TextStyle(

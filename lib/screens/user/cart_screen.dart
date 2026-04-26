@@ -222,9 +222,9 @@ class _CartScreenState extends State<CartScreen> {
     final authService = Provider.of<AuthService>(context, listen: false);
 
     await orderService.placeOrder(
-      authService.userName ?? "Guest",
-      cartService.items,
-      cartService.totalAmount,
+      userId: authService.userId ?? 'guest',
+      cartItems: cartService.items.toList(),
+      address: 'Default Address',
     );
 
     cartService.clearCart();

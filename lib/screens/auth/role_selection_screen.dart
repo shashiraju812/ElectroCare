@@ -20,7 +20,19 @@ class RoleSelectionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10), // Reduced for better fit on small screens
+              Center(
+                child: Container(
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+
               Text(
                 'Who are you?',
                 style: GoogleFonts.outfit(
@@ -35,9 +47,11 @@ class RoleSelectionScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   color: Colors.grey[600],
+                  letterSpacing: 0.1,
                 ),
-              ).animate().fadeIn(delay: 200.ms),
-              const SizedBox(height: 40),
+              ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+              const SizedBox(height: 30), // Reduced from 40 for Pixel 9A
+
 
               Expanded(
                 child: ListView(
@@ -108,9 +122,22 @@ class RoleSelectionScreen extends StatelessWidget {
         if (context.mounted) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => nextScreen),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOutQuart;
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
           );
         }
+
       },
       child: Container(
         padding: const EdgeInsets.all(20),

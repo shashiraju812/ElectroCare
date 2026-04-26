@@ -1,3 +1,4 @@
+// screens/user/products/product_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import '../../../models/product_model.dart';
 import '../../../services/cart_service.dart';
 import '../../../services/order_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../widgets/cached_product_image.dart';
 import '../cart_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -71,9 +73,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     // Place a direct single-item order
     final singleItem = CartItem(product: widget.product, quantity: 1);
-    await orderService.placeOrder(authService.userName ?? "Customer", [
-      singleItem,
-    ], widget.product.price);
+    await orderService.placeOrder(
+      userId: authService.userId ?? 'guest',
+      cartItems: [singleItem],
+      address: 'Default Address',
+    );
 
     if (!mounted) return;
     setState(() => _isBuying = false);
@@ -169,16 +173,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 child: Container(
                   color: const Color(0xFFF0F4FF),
                   padding: const EdgeInsets.all(30),
-                  child: Image.network(
-                    product.imageUrl,
+                  child: CachedProductImage(
+                    imageUrl: product.imageUrl,
+                    height: 300,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, e, s) => const Center(
-                      child: Icon(
-                        Icons.electrical_services,
-                        size: 100,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    backgroundColor: const Color(0xFFF0F4FF),
                   ),
                 ),
               ),
