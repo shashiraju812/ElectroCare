@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "Electrocare.project"
+    namespace = "com.electrocare.project"
     compileSdk = 36
     buildToolsVersion = "36.1.0"
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "Electrocare.project"
+        applicationId = "com.electrocare.project"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = 1
@@ -34,6 +34,9 @@ android {
         release {
             signingConfig = signingConfigs.getByName("debug")
         }
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
 }
 
@@ -42,8 +45,9 @@ flutter {
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("androidx.multidex:multidex:2.0.1")
 }

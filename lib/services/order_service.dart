@@ -4,10 +4,12 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
-import '../models/product_model.dart';
+
+import '../models/order_model.dart';
+import '../models/cart_model.dart';
 
 class OrderService extends ChangeNotifier {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
   final List<Order> _orders = [];
   StreamSubscription<QuerySnapshot>? _subscription;
 
@@ -18,7 +20,6 @@ class OrderService extends ChangeNotifier {
     _subscription?.cancel();
     _subscription = _db
         .collection('orders')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
       _orders.clear();

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../models/product_model.dart';
+import '../../../models/cart_model.dart';
 import '../../../services/cart_service.dart';
 import '../../../services/order_service.dart';
 import '../../../services/auth_service.dart';
@@ -71,12 +72,27 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final orderService = Provider.of<OrderService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
 
+    final address = authService.currentUser?.address;
+    if (address == null || address.trim().isEmpty) {
+      if (!mounted) return;
+      setState(() => _isBuying = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Please add a delivery address in your Profile first."),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     // Place a direct single-item order
     final singleItem = CartItem(product: widget.product, quantity: 1);
     await orderService.placeOrder(
       userId: authService.userId ?? 'guest',
       cartItems: [singleItem],
-      address: 'Default Address',
+      address: address,
     );
 
     if (!mounted) return;

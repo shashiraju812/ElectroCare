@@ -49,6 +49,8 @@ class Booking {
   final String? aiCategory;
   final String? urgency;
   final bool isAppBooking;
+  final double? latitude;
+  final double? longitude;
 
   const Booking({
     required this.id,
@@ -72,6 +74,8 @@ class Booking {
     this.aiCategory,
     this.urgency,
     this.isAppBooking = true,
+    this.latitude,
+    this.longitude,
   });
 
   // ── Firestore Serialization ──────────────────────────────
@@ -97,6 +101,8 @@ class Booking {
       'aiCategory': aiCategory,
       'urgency': urgency,
       'isAppBooking': isAppBooking,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -126,6 +132,8 @@ class Booking {
       aiCategory: map['aiCategory'],
       urgency: map['urgency'],
       isAppBooking: map['isAppBooking'] ?? true,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -140,6 +148,8 @@ class Booking {
     String? paymentId,
     String? aiCategory,
     String? urgency,
+    double? latitude,
+    double? longitude,
   }) {
     return Booking(
       id: id,
@@ -163,6 +173,8 @@ class Booking {
       paymentId: paymentId ?? this.paymentId,
       aiCategory: aiCategory ?? this.aiCategory,
       urgency: urgency ?? this.urgency,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

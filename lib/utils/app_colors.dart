@@ -38,4 +38,17 @@ class AppColors {
   static const Color igGrey = Color(0xFFCFD8DC);
   static const Color igSecondaryText = textGrey;
   static const Color candyAppleRed = primaryBlue;
+
+  // Glassmorphism & Premium UI
+  static final Color glassWhite = Colors.white.withValues(alpha: 0.15);
+  static final Color glassBorder = Colors.white.withValues(alpha: 0.2);
+  
+  static final LinearGradient glassGradient = LinearGradient(
+    colors: [
+      Colors.white.withValues(alpha: 0.25),
+      Colors.white.withValues(alpha: 0.05),
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }

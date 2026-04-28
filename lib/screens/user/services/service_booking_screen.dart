@@ -9,6 +9,10 @@ import '../../../services/auth_service.dart';
 import '../../../services/booking_service.dart';
 import '../../../services/ai_service.dart';
 import '../../../utils/app_colors.dart';
+import 'booking_tracking_screen.dart';
+import 'landmark_selection_screen.dart';
+import '../checkout_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -23,8 +27,11 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   Timer? _debounce;
   bool _isLoading = false;
   bool _isAiSuggesting = false;
-  String? _aiPriceRange;   // Set by AI classifier
   String? _aiUrgency;       // Set by AI classifier
+  String? _aiPriceRange;
+
+  // Map fields
+  LatLng? _selectedLatLng;
 
   // Scheduling fields
   DateTime? _selectedDate;
@@ -136,14 +143,30 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
   }
 
+  Future<void> _openMapSelection() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LandmarkSelectionScreen(initialLocation: _selectedLatLng),
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _selectedLatLng = result['position'] as LatLng;
+        _addressController.text = result['address'] as String? ?? '';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          '⚡ Book Electrician  •  ఎలక్ట్రీషియన్ బుక్ చేయండి',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+          '⚡ Book an Electrician',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 17),
         ),
       ),
       body: SingleChildScrollView(
@@ -156,7 +179,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Service Type  •  సేవా రకం",
+                  "Service Type",
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -219,7 +242,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
             // Description
             Text(
-              "Describe Issue  •  సమస్య చెప్పండి",
+              "Describe Your Issue",
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -228,7 +251,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              "మీ సమస్యను వివరించండి  •  अपनी समस्या बताएं",
+              "Please describe the problem in detail",
               style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey),
             ),
             const SizedBox(height: 12),
@@ -236,8 +259,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText:
-                    "E.g. Switch board sparkling...  •  ఉదా: స్విచ్ బోర్డ్ మంటలు...",
+                hintText: "E.g. Switch board sparkling, fan not working...",
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -257,7 +279,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
             // Address field
             Text(
-              "Your Address  •  మీ చిరునామా",
+              "Your Address",
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -269,8 +291,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               controller: _addressController,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText:
-                    "House No., Street, Village, District  •  ఇల్లు, వీధి, గ్రామం",
+                hintText: "House No., Street, Village, District",
                 prefixIcon: const Icon(
                   Icons.location_on_outlined,
                   color: AppColors.primaryBlue,
@@ -294,7 +315,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
             // Schedule Date & Time
             Text(
-              "Schedule  •  షెడ్యూల్",
+              "Schedule",
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -441,7 +462,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
             // ─── Location Map (custom) ─────────────────────
             Text(
-              "Service Location  •  సేవా స్థానం",
+              "Service Location",
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -449,91 +470,94 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              height: 160,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE3F2FD), Color(0xFFE8EAF6)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            GestureDetector(
+              onTap: _openMapSelection,
+              child: Container(
+                height: 160,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.grey[100],
+                  image: _selectedLatLng == null ? null : const DecorationImage(
+                    image: AssetImage('assets/images/map_placeholder.png'), // Fallback if no real map preview available
+                    fit: BoxFit.cover,
+                    opacity: 0.3,
+                  ),
+                  gradient: _selectedLatLng == null ? const LinearGradient(
+                    colors: [Color(0xFFE3F2FD), Color(0xFFE8EAF6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ) : null,
+                  border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                border: Border.all(color: Colors.blue.shade100, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Grid lines simulating a map
-                  CustomPaint(
-                    size: const Size(double.infinity, 160),
-                    painter: _MapGridPainter(),
-                  ),
-                  // Location pin
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryBlue.withValues(
-                                alpha: 0.4,
-                              ),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (_selectedLatLng == null)
+                      CustomPaint(
+                        size: const Size(double.infinity, 160),
+                        painter: _MapGridPainter(),
                       ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          "We'll send the nearest electrician 📍",
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
                             color: AppColors.primaryBlue,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryBlue.withValues(alpha: 0.4),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            _selectedLatLng != null ? Icons.location_on : Icons.map,
+                            color: Colors.white,
+                            size: 28,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            _selectedLatLng != null ? "Location Selected ✓" : "Tap to select landmark on map 📍",
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: AppColors.primaryBlue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              "దగ్గరలో ఉన్న ఎలక్ట్రీషియన్‌ను పంపుతాం  •  निकटतम इलेक्ट्रीशियन भेजेंगे",
+              "The nearest available electrician will be dispatched to your location.",
               style: GoogleFonts.outfit(
                 color: AppColors.textGrey,
                 fontSize: 12,
@@ -580,7 +604,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     const Icon(Icons.bolt, color: AppColors.accentAmber),
                     const SizedBox(width: 8),
                     Text(
-                      "Book Now  •  ఇప్పుడే బుక్ చేయండి",
+                      "Book Now",
                       style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontSize: 16,
@@ -640,7 +664,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     if (_descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Please describe the issue  •  సమస్యను వివరించండి"),
+        content: const Text("Please describe your issue before booking."),
           backgroundColor: Colors.orange[700],
           behavior: SnackBarBehavior.floating,
         ),
@@ -651,9 +675,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            "Please select a date & time  •  తేదీ & సమయం ఎంచుకోండి",
-          ),
+          content: const Text("Please select a date & time for the service."),
           backgroundColor: Colors.orange[700],
           behavior: SnackBarBehavior.floating,
         ),
@@ -663,11 +685,28 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
     setState(() => _isLoading = true);
 
-    // Run real AI classification first
     ServiceClassification? aiResult;
     try {
       aiResult = await AiService.classifyBookingRequest(_descriptionController.text.trim());
     } catch (_) {}
+
+    final double amountToPay = aiResult != null
+        ? double.tryParse(aiResult.priceRange.split('-').first) ?? 299.0
+        : 299.0; // Default booking fee if AI fails
+
+    // 1. Navigate to Payment Checkout
+    if (!mounted) return;
+    final txnId = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutScreen(amount: amountToPay),
+      ),
+    );
+
+    if (txnId == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return; // Payment cancelled
+    }
 
     final newBooking = Booking(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -688,16 +727,18 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           : null,
       aiCategory: aiResult?.category,
       urgency: aiResult?.urgency,
+      latitude: _selectedLatLng?.latitude,
+      longitude: _selectedLatLng?.longitude,
     );
 
     await bookingService.createBooking(newBooking);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
-    _showBookingDialog();
+    _showBookingDialog(newBooking.id);
   }
 
-  void _showBookingDialog() {
+  void _showBookingDialog(String bookingId) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -722,7 +763,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
             const SizedBox(height: 20),
             Text(
-              "బుకింగ్ నిర్ధారించబడింది! Booking Confirmed! 🎉",
+              "Booking Confirmed! 🎉",
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -731,7 +772,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              "మేము మీ '$_selectedService' అభ్యర్థన కోసం దగ్గరలో ఉన్న ఎలక్ట్రీషియన్‌ను వెతుకుతున్నాం.",
+              "We are finding the nearest electrician for your '$_selectedService' request.",
               textAlign: TextAlign.center,
               style: GoogleFonts.outfit(
                 color: AppColors.textGrey,
@@ -773,7 +814,16 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  Navigator.pop(context); // Go back to Home
+                  Navigator.pop(context);
+                  // Navigate to tracking screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BookingTrackingScreen(
+                        bookingId: bookingId,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,

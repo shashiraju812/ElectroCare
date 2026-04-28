@@ -4,12 +4,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 import '../models/user_role.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -209,11 +210,59 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // ── Google Sign-In (mock — add google_sign_in package for real) ──
+  // ── Google Sign-In ──
   Future<bool> loginWithGoogle({UserRole role = UserRole.user}) async {
-    // For now, use anonymous auth as placeholder
-    // To enable real Google Sign-In, add google_sign_in package
-    return loginAsGuest(role: role);
+    _setLoading(true);
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      
+      // Attempt to sign in with Google
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        // User canceled the sign-in flow
+        _setLoading(false);
+        return false;
+      }
+
+      // Obtain auth details
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Create a new credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase
+      final UserCredential result = await _auth.signInWithCredential(credential);
+      final uid = result.user!.uid;
+
+      // Check if profile already exists
+      final doc = await _db.collection('users').doc(uid).get();
+      if (doc.exists) {
+        _currentUser = UserModel.fromMap(doc.data()!);
+      } else {
+        _currentUser = UserModel(
+          uid: uid,
+          name: googleUser.displayName ?? 'Google User',
+          email: googleUser.email,
+          phone: '',
+          role: role,
+          profileImageUrl: googleUser.photoUrl,
+          createdAt: DateTime.now(),
+        );
+        await _saveUserProfile(_currentUser!);
+      }
+
+      _setLoading(false);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Google Sign-In failed: $e';
+      _setLoading(false);
+      return false;
+    }
   }
 
   // ── Logout ────────────────────────────────────────────────
@@ -225,9 +274,26 @@ class AuthService extends ChangeNotifier {
   }
 
   // ── Profile Update ────────────────────────────────────────
-  Future<void> updateProfile({String? name, String? address}) async {
+  Future<void> updateProfile({String? name, String? address, String? phone, UserRole? role}) async {
     if (_currentUser == null) return;
-    _currentUser = _currentUser!.copyWith(name: name, address: address);
+    
+    // We update the user model manually or via copyWith if it exists. Let's use the constructor to copy.
+    _currentUser = UserModel(
+      uid: _currentUser!.uid,
+      name: name ?? _currentUser!.name,
+      email: _currentUser!.email,
+      phone: phone ?? _currentUser!.phone,
+      role: role ?? _currentUser!.role,
+      profileImageUrl: _currentUser!.profileImageUrl,
+      isActive: _currentUser!.isActive,
+      isVerified: _currentUser!.isVerified,
+      rating: _currentUser!.rating,
+      totalJobs: _currentUser!.totalJobs,
+      address: address ?? _currentUser!.address,
+      createdAt: _currentUser!.createdAt,
+      lastSeen: _currentUser!.lastSeen,
+    );
+    
     await _saveUserProfile(_currentUser!);
     notifyListeners();
   }

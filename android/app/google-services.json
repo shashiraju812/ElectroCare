@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:200399727960:android:1839b9de15333720b7892d",
         "android_client_info": {
-          "package_name": "Electrocare.project"
+          "package_name": "com.electrocare.project"
         }
       },
       "oauth_client": [],

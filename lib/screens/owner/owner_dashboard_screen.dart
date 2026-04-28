@@ -15,6 +15,7 @@ import '../../services/auth_service.dart';
 import '../../services/language_service.dart';
 import '../../widgets/cached_product_image.dart';
 import '../../models/product_model.dart';
+import '../../models/order_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_translations.dart';
 import '../auth/role_selection_screen.dart';

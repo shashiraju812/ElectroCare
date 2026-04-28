@@ -116,7 +116,41 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     }
   }
 
-  // ── Guest / Password Login (dev mode convenience) ─────────────────
+  // ── Email + Password Login ────────────────────────────────────────
+  Future<void> _emailLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _setError('Please enter your email and password');
+      return;
+    }
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      _setError('Please enter a valid email address');
+      return;
+    }
+    if (password.length < 6) {
+      _setError('Password must be at least 6 characters');
+      return;
+    }
+
+    _setLoading(true);
+    final auth = context.read<AuthService>();
+    final success = await auth.loginWithEmail(
+      email: email,
+      password: password,
+      role: UserRole.user,
+    );
+    if (!mounted) return;
+    _setLoading(false);
+    if (success) {
+      _navigateToHome();
+    } else {
+      _setError(auth.error ?? 'Login failed. Please check your credentials.');
+    }
+  }
+
+  // ── Guest Login ───────────────────────────────────────────────────
   Future<void> _guestLogin() async {
     _setLoading(true);
     final auth = context.read<AuthService>();
@@ -228,7 +262,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       SizedBox(
                         width: double.infinity, height: 50,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : _guestLogin,
+                          onPressed: _isLoading ? null : _emailLogin,
                           style: ElevatedButton.styleFrom(backgroundColor: _themeColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                           child: _isLoading ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                               : Text('Login', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),

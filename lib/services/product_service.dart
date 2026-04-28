@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product_model.dart';
 
 class ProductService extends ChangeNotifier {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
   final List<Product> _products = [];
   StreamSubscription<QuerySnapshot>? _subscription;
 
@@ -26,12 +26,15 @@ class ProductService extends ChangeNotifier {
 
     _subscription = _db
         .collection('products')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
       _products.clear();
       for (final doc in snapshot.docs) {
-        _products.add(Product.fromMap(doc.id, doc.data()));
+        try {
+          _products.add(Product.fromMap(doc.id, doc.data()));
+        } catch (e) {
+          debugPrint('Product parse error: $e');
+        }
       }
 
       // Seed initial products if collection is empty (first run)
@@ -53,58 +56,87 @@ class ProductService extends ChangeNotifier {
     final seedProducts = [
       const Product(
         id: '', name: 'Philips Essential LED Bulb 9W',
-        description: 'Energy-efficient 9W LED bulb. 15,000 hour lifespan. Cool daylight.',
+        description: 'A60-shape retrofit LED lamp for E27 fixtures delivering 900 lm at 100 lm/W efficacy. '
+            'Frosted diffuser ensures 150° uniform light distribution. CRI ≥ 80, CCT options: 3000K / 4000K / 6500K. '
+            'Mercury-free, no UV/IR. Rated 10,000–15,000 hrs, 50,000 switching cycles. '
+            'Max T-case 90°C. Operating range −20°C to +45°C. Input: 220–240V, 50/60Hz.',
         price: 185, discountPrice: 155,
-        imageUrl: 'https://images.unsplash.com/photo-1579101773206-155a50900f11?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/led_bulb.png',
         category: 'Lighting', stock: 150, rating: 4.5, reviewCount: 1240,
       ),
       const Product(
         id: '', name: 'Anchor Roma 6-Module Switch Plate',
-        description: 'Premium modular switch plate, polycarbonate, flame retardant.',
+        description: 'Flame-retardant polycarbonate modular plate (220×90 mm) housing 6 control modules. '
+            'High-glow matte white finish resists yellowing and dust. Snap-fit mechanism with captive screw terminals. '
+            'Supports horizontal and vertical installation. IP20 rated for indoor use. '
+            'Compatible with Roma Classic, Urban, Tresa, and Plus aesthetic lines.',
         price: 320, discountPrice: 285,
-        imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/switch_plate.png',
         category: 'Electrical', stock: 75, rating: 4.3, reviewCount: 523,
       ),
       const Product(
         id: '', name: 'Finolex 1.5 sqmm FR Cable (10m)',
-        description: 'Pure copper wire with Flame Retardant properties for house wiring.',
+        description: 'Multi-strand flexible Class 5 conductor (1.5 sqmm) with ≥99.97% pure electrolytic copper — '
+            'conductivity exceeding 100% IACS. FR PVC Type D insulation: Critical Oxygen Index ≥29%, '
+            'Temperature Index ≥250°C — self-extinguishing without external flame. '
+            'Rated 1100V, ~13–15A. IS 694:2010 compliant. ISI & Flamegard marked. '
+            'Available in Red, Black, Yellow, Green, Blue.',
         price: 520, discountPrice: 450,
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14819f60b6fe?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/copper_wire.png',
         category: 'Wiring', stock: 200, rating: 4.6, reviewCount: 867,
       ),
       const Product(
         id: '', name: 'Havells Crabtree Athena MCB 32A',
-        description: 'Single pole MCB, 32A, 10kA, ISI marked. Protects from overload.',
+        description: 'C-Curve miniature circuit breaker rated 32A for high-load circuits (A/C, geysers). '
+            'Breaking capacity: 3kA — suitable for standard residential fault levels. '
+            'C-Curve tripping handles moderate inductive starting currents without nuisance trip. '
+            'UV-stabilized unbreakable polycarbonate body. Rated 240V, 50Hz AC. '
+            'Available in Single Pole (SP) and Double Pole (DP). Sleek white Athena finish.',
         price: 290, discountPrice: 240,
-        imageUrl: 'https://images.unsplash.com/photo-1583622402411-041fb48a1fb5?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/mcb_breaker.png',
         category: 'Safety', stock: 60, rating: 4.7, reviewCount: 431,
       ),
       const Product(
         id: '', name: 'Syska PAR LED Spotlight 7W',
-        description: 'GU10 base spotlight for living rooms. Warm white 3000K, 600 lumens.',
+        description: 'Precision accent spotlight engineered for Indian voltage conditions (90–300V AC). '
+            'SSK-SMR variant: 480 lm output, aluminum + thermoplastic housing, IP44 rated. '
+            'SSK-PAP variant: 700 lm, up to 240° beam angle, IP20 polycarbonate. '
+            'Color options: 3000K–6500K and RGB+White. Ideal for showrooms, malls, residential accents.',
         price: 240, discountPrice: 199,
-        imageUrl: 'https://images.unsplash.com/photo-1565636192335-14c46fa1120d?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/syska_spotlight.png',
         category: 'Lighting', stock: 80, rating: 4.2, reviewCount: 319,
       ),
       const Product(
         id: '', name: 'Panasonic 5A 3-Pin Socket (White)',
-        description: '3-pin socket, ISI marked, with child safety shutter.',
+        description: 'IS 1293 compliant 5A 3-pin power socket with child safety shutters — '
+            'prevents accidental contact with live parts. Tough Contact technology: '
+            'rolled thin-plate springs provide high elasticity, preventing disconnection under mechanical impact. '
+            'High-grade heat-resistant, non-flammable polycarbonate body. '
+            'Available in Matte White, Matte Black, and Ivory. Super Plug Top compatible.',
         price: 95,
-        imageUrl: 'https://images.unsplash.com/photo-1565632066482-577d38673c7d?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/socket_outlet.png',
         category: 'Electrical', stock: 300, rating: 4.1, reviewCount: 788,
       ),
       const Product(
         id: '', name: 'Havells DIGISURGE 8-Socket Surge Guard',
-        description: '8-socket power strip with surge protection. 4m cord.',
+        description: 'Type 3 point-of-use surge protection device with 8 universal sockets and 4m cord. '
+            'Shunts voltage transients at point-of-use — ideal for computers, home theaters, AV equipment. '
+            'Protection modes: Line-to-Neutral, Line-to-Earth, Neutral-to-Earth. '
+            'Master on/off switch with indicator LEDs for surge protection and grounding status. '
+            'IS 16192 compliant. Robust construction with multiple plug configurations.',
         price: 1250, discountPrice: 999,
-        imageUrl: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/surge_protector.png',
         category: 'Safety', stock: 40, rating: 4.4, reviewCount: 2140,
       ),
       const Product(
         id: '', name: 'Legrand Arteor RCCB 40A 30mA',
-        description: 'Earth leakage circuit breaker, protects against electric shocks.',
+        description: 'IEC 61008-1 certified 2-pole Residual Current Circuit Breaker — '
+            'detects leakage currents as low as 30mA and disconnects in milliseconds to prevent electrocution. '
+            'Rated 40A continuous current, 10kA breaking capacity. Type AC/A/F for broad compatibility. '
+            'DX3/TX3 series: high immunity to unwanted tripping, bi-connect terminals, '
+            'label holder for circuit ID. Grey RAL 7035. 3D CAD models (.DWG) available from Legrand e-Catalogue.',
         price: 1850, discountPrice: 1499,
-        imageUrl: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400&h=400&fit=crop',
+        imageUrl: 'assets/images/rccb_breaker.png',
         category: 'Safety', stock: 25, rating: 4.8, reviewCount: 156,
       ),
     ];

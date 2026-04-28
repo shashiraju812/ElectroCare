@@ -1,5 +1,5 @@
 // lib/services/booking_service.dart
-// Firebase BookingService — reads/writes to Firestore /bookings collection
+// Firebase BookingService — safe lazy Firestore access
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -7,27 +7,29 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/booking_model.dart';
 
 class BookingService extends ChangeNotifier {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
   final List<Booking> _bookings = [];
   StreamSubscription<QuerySnapshot>? _subscription;
-
-  // ── Ignored booking IDs (provider-local) ─────────────────────────
   final Set<String> _ignoredByProvider = {};
 
-  BookingService() {
-    _listenToBookings();
-  }
+  // ── NOTE: We do NOT auto-start listening in constructor.
+  // Call listenToBookings() only after Firebase is confirmed ready.
+  BookingService();
 
-  /// Listen to Firestore /bookings in real time
-  void _listenToBookings() {
+  /// Call this after user logs in (or on app start after Firebase init)
+  void listenToBookings() {
+    _subscription?.cancel();
     _subscription = _db
         .collection('bookings')
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .listen((snapshot) {
       _bookings.clear();
       for (final doc in snapshot.docs) {
-        _bookings.add(Booking.fromMap(doc.id, doc.data()));
+        try {
+          _bookings.add(Booking.fromMap(doc.id, doc.data()));
+        } catch (e) {
+          debugPrint('Booking parse error: $e');
+        }
       }
       notifyListeners();
     }, onError: (e) {
@@ -43,19 +45,21 @@ class BookingService extends ChangeNotifier {
   List<Booking> getPendingBookings() =>
       _bookings.where((b) => b.status == BookingStatus.pending).toList();
 
-  /// Returns bookings available for a provider to accept (pending & not ignored)
-  List<Booking> getAvailableBookings(String providerId) =>
-      _bookings
-          .where((b) =>
-              b.status == BookingStatus.pending &&
-              !_ignoredByProvider.contains(b.id))
-          .toList();
+  List<Booking> getAvailableBookings(String providerId) => _bookings
+      .where((b) =>
+          b.status == BookingStatus.pending &&
+          !_ignoredByProvider.contains(b.id))
+      .toList();
 
   List<Booking> getProviderBookings(String providerId) =>
       _bookings.where((b) => b.providerId == providerId).toList();
 
   Future<void> createBooking(Booking booking) async {
-    await _db.collection('bookings').add(booking.toMap());
+    try {
+      await _db.collection('bookings').add(booking.toMap());
+    } catch (e) {
+      debugPrint('createBooking error: $e');
+    }
   }
 
   Future<void> acceptBooking({
@@ -64,27 +68,33 @@ class BookingService extends ChangeNotifier {
     required String providerName,
     required String eta,
   }) async {
-    await _db.collection('bookings').doc(bookingId).update({
-      'status': BookingStatus.accepted.name,
-      'providerId': providerId,
-      'providerName': providerName,
-      'providerEta': eta,
-    });
+    try {
+      await _db.collection('bookings').doc(bookingId).update({
+        'status': BookingStatus.accepted.name,
+        'providerId': providerId,
+        'providerName': providerName,
+        'providerEta': eta,
+      });
+    } catch (e) {
+      debugPrint('acceptBooking error: $e');
+    }
   }
 
-  /// Provider swipes away / ignores a booking (hides it from their list)
   Future<void> ignoreBooking(String bookingId) async {
     _ignoredByProvider.add(bookingId);
     notifyListeners();
   }
 
   Future<void> updateBookingStatus(String bookingId, BookingStatus status) async {
-    await _db.collection('bookings').doc(bookingId).update({
-      'status': status.name,
-    });
+    try {
+      await _db.collection('bookings').doc(bookingId).update({
+        'status': status.name,
+      });
+    } catch (e) {
+      debugPrint('updateBookingStatus error: $e');
+    }
   }
 
-  /// Mark as in-progress (alias for updateBookingStatus)
   Future<void> markInProgress(String bookingId) =>
       updateBookingStatus(bookingId, BookingStatus.inProgress);
 
@@ -92,13 +102,16 @@ class BookingService extends ChangeNotifier {
       updateBookingStatus(bookingId, BookingStatus.cancelled);
 
   Future<void> completeBooking(String bookingId, {double finalPrice = 0}) async {
-    await _db.collection('bookings').doc(bookingId).update({
-      'status': BookingStatus.completed.name,
-      'finalPrice': finalPrice,
-    });
+    try {
+      await _db.collection('bookings').doc(bookingId).update({
+        'status': BookingStatus.completed.name,
+        'finalPrice': finalPrice,
+      });
+    } catch (e) {
+      debugPrint('completeBooking error: $e');
+    }
   }
 
-  // Stats
   int get totalBookings => _bookings.length;
   int get pendingCount =>
       _bookings.where((b) => b.status == BookingStatus.pending).length;

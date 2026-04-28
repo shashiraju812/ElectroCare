@@ -19,7 +19,7 @@ class AppTranslations {
   static const Map<String, Map<String, String>> _translations = {
     // ── Common ──────────────────────────────────────────────────
     'app_name': {
-      'en': 'ElectroCare',
+      'en': 'EELECTROCARE',
       'te': 'ఎలెక్ట్రోకేర్',
       'hi': 'इलेक्ट्रोकेयर',
       'ta': 'எலக்ட்ரோகேர்',

@@ -1,12 +1,12 @@
-// lib/main.dart — ElectroCare App Entry Point (Firebase Enabled)
+// lib/main.dart — ElectroCare App Entry Point
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'utils/app_colors.dart';
 import 'services/auth_service.dart';
 import 'services/booking_service.dart';
@@ -16,32 +16,55 @@ import 'services/order_service.dart';
 import 'services/payment_service.dart';
 import 'services/ai_service.dart';
 import 'services/language_service.dart';
+import 'services/firestore_init_service.dart';
+import 'services/maps_service.dart';
 import 'screens/auth/role_selection_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Initialize Firebase ───────────────────────────────────
-  await Firebase.initializeApp();
+  // ── Firebase init with explicit options (no dependency on google-services.json) ──
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase initialized');
+  } catch (e) {
+    // Already initialized on hot restart — safe to ignore
+    if (!e.toString().contains('duplicate-app')) {
+      debugPrint('⚠️ Firebase init error: $e');
+    }
+  }
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // ── Firestore collections (non-fatal) ────────────────────────────────────
+  try {
+    await FirestoreInitService.initializeCollections();
+  } catch (e) {
+    debugPrint('⚠️ Firestore collections init (non-fatal): $e');
+  }
 
-  AiService.initialize();
+  // ── AI Service ───────────────────────────────────────────────────────────
+  try {
+    AiService.initialize();
+  } catch (e) {
+    debugPrint('⚠️ AI service init (non-fatal): $e');
+  }
 
-  // Initialize language service
+  // ── Language service ─────────────────────────────────────────────────────
   final languageService = LanguageService();
-  await languageService.initialize();
+  try {
+    await languageService.initialize();
+  } catch (e) {
+    debugPrint('⚠️ Language service init (non-fatal): $e');
+  }
 
-  runApp(ElectroCareApp(languageService: languageService));
+  runApp(EELECTROCAREApp(languageService: languageService));
 }
 
-class ElectroCareApp extends StatelessWidget {
+class EELECTROCAREApp extends StatelessWidget {
   final LanguageService languageService;
 
-  const ElectroCareApp({super.key, required this.languageService});
+  const EELECTROCAREApp({super.key, required this.languageService});
 
   @override
   Widget build(BuildContext context) {
@@ -51,22 +74,18 @@ class ElectroCareApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookingService()),
         ChangeNotifierProvider(create: (_) => ProductService()),
         ChangeNotifierProvider(create: (_) => CartService()),
-        ChangeNotifierProvider(create: (_) {
-          final os = OrderService();
-          os.listenToAllOrders();
-          return os;
-        }),
+        ChangeNotifierProvider(create: (_) => OrderService()),
         ChangeNotifierProvider.value(value: languageService),
+        ChangeNotifierProvider(create: (_) => MapsService()),
         ChangeNotifierProvider(create: (_) {
           final ps = PaymentService();
-          ps.initialize();
           return ps;
         }),
       ],
       child: Consumer<LanguageService>(
         builder: (context, langService, _) {
           return MaterialApp(
-            title: 'ElectroCare',
+            title: 'Electrocare',
             debugShowCheckedModeBanner: false,
             theme: _buildTheme(),
             locale: langService.currentLocale,

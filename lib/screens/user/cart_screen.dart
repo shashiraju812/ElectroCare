@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
+
 import '../../services/order_service.dart';
 import '../../services/auth_service.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -221,10 +223,40 @@ class _CartScreenState extends State<CartScreen> {
     final orderService = Provider.of<OrderService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
 
+    final address = authService.currentUser?.address;
+    if (address == null || address.trim().isEmpty) {
+      if (mounted) {
+        setState(() => _isCheckingOut = false);
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(
+            content: const Text("Please add a delivery address in your Profile first."),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+      return;
+    }
+
+    // 1. Navigate to Payment Checkout
+    final txnId = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutScreen(amount: cartService.totalAmount),
+      ),
+    );
+
+    if (txnId == null) {
+      if (mounted) setState(() => _isCheckingOut = false);
+      return; // Payment cancelled or failed
+    }
+
+    // 2. Place order if payment successful
     await orderService.placeOrder(
       userId: authService.userId ?? 'guest',
       cartItems: cartService.items.toList(),
-      address: 'Default Address',
+      address: address,
     );
 
     cartService.clearCart();

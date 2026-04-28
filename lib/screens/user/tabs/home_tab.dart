@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
@@ -12,6 +13,7 @@ import '../../../services/product_service.dart';
 import '../../../services/cart_service.dart';
 import '../../../services/order_service.dart';
 import '../../../models/product_model.dart';
+import '../../../models/cart_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/cached_product_image.dart';
 import '../cart_screen.dart';
@@ -19,6 +21,7 @@ import '../notifications_screen.dart';
 import '../products/product_catalog_screen.dart';
 import '../products/product_details_screen.dart';
 import '../services/service_booking_screen.dart';
+import '../../../widgets/ai_assistant_fab.dart';
 
 
 class HomeTab extends StatefulWidget {
@@ -56,9 +59,29 @@ class _HomeTabState extends State<HomeTab> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: Text(
-          'ElectroCare',
-          style: GoogleFonts.grandHotel(fontSize: 28, color: AppColors.primaryBlue),
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Electro',
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryBlue,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              TextSpan(
+                text: 'Care',
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.accentAmber,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -130,6 +153,24 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ),
 
+            // ── Trending Keywords (Smart Search) ──────────────────
+            if (_searchQuery.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Text('Trending: ', style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textGrey, fontWeight: FontWeight.bold)),
+                      _buildTrendingChip('Ceiling Fan'),
+                      _buildTrendingChip('LED Bulb'),
+                      _buildTrendingChip('Copper Wire'),
+                      _buildTrendingChip('Switch'),
+                    ],
+                  ),
+                ),
+              ),
+
             // ── Search Results Mode ───────────────────────────────
             if (_searchQuery.isNotEmpty) ...[
               Padding(
@@ -171,46 +212,61 @@ class _HomeTabState extends State<HomeTab> {
                 height: 160,
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                      blurRadius: 15, offset: const Offset(0, 8),
+                      blurRadius: 20, offset: const Offset(0, 10),
                     ),
                   ],
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -30, bottom: -30,
-                      child: Icon(Icons.bolt, size: 180, color: Colors.white.withValues(alpha: 0.1)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.accentAmber,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text('Limited Offer',
-                              style: GoogleFonts.outfit(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Summer Sale', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text('Up to 40% off on\nCooling Appliances',
-                            style: GoogleFonts.outfit(fontSize: 13, color: Colors.white.withValues(alpha: 0.9))),
-                        ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -30, bottom: -30,
+                        child: Icon(Icons.bolt, size: 200, color: Colors.white.withValues(alpha: 0.08)),
                       ),
-                    ),
-                  ],
+                      // Glassmorphism Overlay
+                      Positioned(
+                        right: 20, top: 20,
+                        child: Container(
+                          width: 100, height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppColors.glassGradient,
+                            border: Border.all(color: AppColors.glassBorder),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.accentAmber,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text('LIMITED OFFER',
+                                style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.textDark, letterSpacing: 1)),
+                            ),
+                            const SizedBox(height: 12),
+                            Text('Summer Sale', style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                            const SizedBox(height: 6),
+                            Text('Up to 40% off on premium\nCooling Appliances',
+                              style: GoogleFonts.outfit(fontSize: 14, color: Colors.white.withValues(alpha: 0.85), height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ).animate().fadeIn(duration: 600.ms).slideX(begin: 0.1, curve: Curves.easeOutQuad),
 
               const SizedBox(height: 24),
 
@@ -253,14 +309,14 @@ class _HomeTabState extends State<HomeTab> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  children: const [
-                    _CategoryItem(label: 'Electrical', icon: Icons.electrical_services),
-                    _CategoryItem(label: 'Lighting', icon: Icons.light),
-                    _CategoryItem(label: 'Wiring', icon: Icons.cable),
-                    _CategoryItem(label: 'Tools', icon: Icons.build),
-                    _CategoryItem(label: 'Appliances', icon: Icons.air),
-                    _CategoryItem(label: 'Protection', icon: Icons.security),
-                  ],
+                  children: [
+                    const _CategoryItem(label: 'Electrical', icon: Icons.electrical_services),
+                    const _CategoryItem(label: 'Lighting', icon: Icons.light),
+                    const _CategoryItem(label: 'Wiring', icon: Icons.cable),
+                    const _CategoryItem(label: 'Tools', icon: Icons.build),
+                    const _CategoryItem(label: 'Appliances', icon: Icons.air),
+                    const _CategoryItem(label: 'Protection', icon: Icons.security),
+                  ].animate(interval: 100.ms).fadeIn().scale(begin: const Offset(0.8, 0.8)),
                 ),
               ),
 
@@ -299,6 +355,7 @@ class _HomeTabState extends State<HomeTab> {
           ],
         ),
       ),
+      floatingActionButton: const AiAssistantFab(),
     );
   }
 
@@ -430,10 +487,29 @@ class _HomeTabState extends State<HomeTab> {
     showDialog(context: context, builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Icon(Icons.check_circle, color: Colors.green, size: 50),
-      content: Text('Order Placed!\nఆర్డర్ అయింది! 🎉', textAlign: TextAlign.center,
+      content: Text('Order Placed Successfully! 🎉', textAlign: TextAlign.center,
         style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
     ));
+  }
+
+  Widget _buildTrendingChip(String label) {
+    return GestureDetector(
+      onTap: () {
+        _searchController.text = label;
+        setState(() => _searchQuery = label);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Text(label, style: GoogleFonts.outfit(fontSize: 10, color: AppColors.primaryBlue, fontWeight: FontWeight.w600)),
+      ),
+    );
   }
 }
 

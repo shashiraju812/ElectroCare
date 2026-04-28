@@ -19,7 +19,7 @@ class AppConfig {
   static bool get useMockData => isDev; // Only mock in dev
 
   // ── App Identity ─────────────────────────────────────────────────
-  static const String appName = 'ElectroCare';
+  static const String appName = 'EELECTROCARE';
   static const String appVersion = '2.0.0';
   static const String appTagline = 'Electrical Products & Services';
 

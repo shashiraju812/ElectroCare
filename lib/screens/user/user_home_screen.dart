@@ -1,6 +1,8 @@
+// screens/user/user_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/professional_header.dart';
 
 import 'tabs/home_tab.dart';
 import 'tabs/bookings_tab.dart';
@@ -21,11 +23,29 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     const BookingsTab(),
     const ProfileTab(),
   ];
+  
+  final List<String> _tabTitles = [
+    'Home  •  హోమ్',
+    'My Bookings  •  బుకింగ్‌లు',
+    'Profile  •  ప్రొఫైల్',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: ProfessionalHeader(
+          title: _tabTitles[_currentIndex],
+          showUserStatus: true,
+          onUserTap: () {
+            if (_currentIndex != 2) {
+              setState(() => _currentIndex = 2);
+            }
+          },
+        ),
+      ),
       body: _tabs[_currentIndex],
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(

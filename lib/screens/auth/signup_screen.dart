@@ -158,7 +158,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 6),
                       // Trilingual subtitle
                       Text(
-                        'Join ElectroCare • ఎలెక్ట్రోకేర్ లో చేరండి • जुड़ें',
+                        'Join EELECTROCARE • ఎలెక్ట్రోకేర్ లో చేరండి • जुड़ें',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                           fontSize: 13,

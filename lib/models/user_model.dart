@@ -1,4 +1,4 @@
-// lib/models/user_model.dart
+// models/user_model.dart
 // Firestore-ready model with toMap/fromMap
 
 import 'package:cloud_firestore/cloud_firestore.dart';
