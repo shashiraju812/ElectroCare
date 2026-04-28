@@ -6,7 +6,7 @@ import '../../widgets/professional_header.dart';
 
 import 'tabs/home_tab.dart';
 import 'tabs/bookings_tab.dart';
-import 'tabs/profile_tab.dart';
+import '../../features/profile/presentation/screens/profile_tab.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});

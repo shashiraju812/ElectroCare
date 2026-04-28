@@ -114,7 +114,13 @@ class AuthService extends ChangeNotifier {
         },
         verificationFailed: (FirebaseAuthException e) {
           _setLoading(false);
-          onError(e.message ?? 'Verification failed');
+          String message = e.message ?? 'Verification failed';
+          if (e.code == 'invalid-phone-number') {
+            message = 'Invalid phone number format. Use 10 digits.';
+          } else if (e.message?.contains('credential') == true) {
+            message = 'Firebase Config Error: Ensure Phone Auth is enabled and SHA-1 is added in Console.';
+          }
+          onError(message);
         },
         codeSent: (String verificationId, int? resendToken) {
           _setLoading(false);

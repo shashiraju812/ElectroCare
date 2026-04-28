@@ -19,7 +19,6 @@ class _LandmarkSelectionScreenState extends State<LandmarkSelectionScreen> {
   LatLng _selectedPosition = const LatLng(17.3850, 78.4867); // Hyderabad default
   String? _address;
   bool _isLocating = false;
-  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -68,7 +67,7 @@ class _LandmarkSelectionScreenState extends State<LandmarkSelectionScreen> {
               target: _selectedPosition,
               zoom: 15,
             ),
-            onMapCreated: (controller) => _mapController = controller,
+            onMapCreated: (_) {},
             onTap: _onMapTapped,
             markers: {
               Marker(

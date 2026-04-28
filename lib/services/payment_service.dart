@@ -36,19 +36,13 @@ class PaymentService extends ChangeNotifier {
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 2));
 
-    // For demo purposes, we'll assume 95% success rate
-    bool isSuccess = true; // Always success for this demo unless manually failed
-
-    if (isSuccess) {
-      final transaction = Transaction(
-        id: 'TXN-${_uuid.v4().substring(0, 8).toUpperCase()}',
-        amount: amount,
-        method: method,
-        timestamp: DateTime.now(),
-        status: 'success',
-      );
-      return transaction;
-    }
-    return null;
+    final transaction = Transaction(
+      id: 'TXN-${_uuid.v4().substring(0, 8).toUpperCase()}',
+      amount: amount,
+      method: method,
+      timestamp: DateTime.now(),
+      status: 'success',
+    );
+    return transaction;
   }
 }
