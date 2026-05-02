@@ -25,6 +25,7 @@ class BookingService extends ChangeNotifier {
         .listen((snapshot) {
       _bookings.clear();
       for (final doc in snapshot.docs) {
+        if (doc.id == '_schema_') continue;
         try {
           _bookings.add(Booking.fromMap(doc.id, doc.data()));
         } catch (e) {

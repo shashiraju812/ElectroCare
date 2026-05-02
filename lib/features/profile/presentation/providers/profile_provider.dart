@@ -31,7 +31,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
   ProfileNotifier({
     required this.repository,
     required this.updateProfileUseCase,
-  }) : super(const AsyncValue.loading());
+  }) : super(const AsyncValue.data(null));
 
   Future<void> fetchProfile(String userId) async {
     state = const AsyncValue.loading();

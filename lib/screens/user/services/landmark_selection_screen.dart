@@ -19,6 +19,7 @@ class _LandmarkSelectionScreenState extends State<LandmarkSelectionScreen> {
   LatLng _selectedPosition = const LatLng(17.3850, 78.4867); // Hyderabad default
   String? _address;
   bool _isLocating = false;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -31,6 +32,12 @@ class _LandmarkSelectionScreenState extends State<LandmarkSelectionScreen> {
 
   Future<void> _updateAddress(LatLng position) async {
     setState(() => _isLocating = true);
+    
+    // Animate camera to the selected position
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLng(position),
+    );
+
     final mapsService = Provider.of<MapsService>(context, listen: false);
     final address = await mapsService.getAddressFromLatLng(position);
     if (mounted) {
@@ -67,7 +74,7 @@ class _LandmarkSelectionScreenState extends State<LandmarkSelectionScreen> {
               target: _selectedPosition,
               zoom: 15,
             ),
-            onMapCreated: (_) {},
+            onMapCreated: (controller) => _mapController = controller,
             onTap: _onMapTapped,
             markers: {
               Marker(

@@ -25,8 +25,6 @@ dependencies:
   provider: ^6.1.2
   flutter_riverpod: ^2.5.1
   dartz: ^0.10.1
-  shimmer: ^3.0.0
-
   # ── Local Storage ────────────────────────────────────────
   shared_preferences: ^2.2.2
 

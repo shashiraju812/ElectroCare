@@ -29,6 +29,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   bool _isAiSuggesting = false;
   String? _aiUrgency;       // Set by AI classifier
   String? _aiPriceRange;
+  int _aiEstimatedHours = 1; // Estimated service duration (hours)
 
   // Map fields
   LatLng? _selectedLatLng;
@@ -90,9 +91,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       setState(() {
         _selectedService = result.category;
         _isAiSuggesting = false;
-        // Show estimated price from AI
         _aiPriceRange = result.priceRange;
         _aiUrgency = result.urgency;
+        _aiEstimatedHours = result.estimatedHours;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,7 +101,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
             const SizedBox(width: 8),
             Expanded(child: Text(
-              '✨ AI suggests: ${result.category} • Est. ₹${result.priceRange}',
+              '✨ AI suggests: ${result.category} • Est. ₹${result.priceRange} • ~${result.estimatedHours} hr${result.estimatedHours > 1 ? "s" : ""}',
               style: const TextStyle(color: Colors.white),
             )),
           ]),
@@ -233,8 +234,12 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 child: Row(children: [
                   const Icon(Icons.psychology, color: Colors.green, size: 16),
                   const SizedBox(width: 8),
-                  Text('AI Estimate: ₹$_aiPriceRange • Urgency: $_aiUrgency',
-                    style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text(
+                      'AI Estimate: ₹$_aiPriceRange  •  ~$_aiEstimatedHours hr${_aiEstimatedHours > 1 ? "s" : ""}  •  Urgency: $_aiUrgency',
+                      style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ]),
               ),
             ],
@@ -696,8 +701,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
     // 1. Navigate to Payment Checkout
     if (!mounted) return;
-    final txnId = await Navigator.push(
-      context,
+    final navigator = Navigator.of(context); // cache before async gap
+    final txnId = await navigator.push(
       MaterialPageRoute(
         builder: (_) => CheckoutScreen(amount: amountToPay),
       ),

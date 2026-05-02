@@ -10,13 +10,13 @@ abstract class ICartLocalDataSource {
 
 class CartLocalDataSourceImpl implements ICartLocalDataSource {
   final SharedPreferences sharedPreferences;
-  static const CACHED_CART = 'CACHED_CART';
+  static const cachedCart = 'CACHED_CART';
 
   CartLocalDataSourceImpl({required this.sharedPreferences});
 
   @override
   Future<List<CartItemModel>> getCartItems() async {
-    final jsonString = sharedPreferences.getString(CACHED_CART);
+    final jsonString = sharedPreferences.getString(cachedCart);
     if (jsonString != null) {
       final List decoded = json.decode(jsonString);
       return decoded.map((item) => CartItemModel.fromJson(item)).toList();
@@ -28,6 +28,6 @@ class CartLocalDataSourceImpl implements ICartLocalDataSource {
   @override
   Future<void> cacheCartItems(List<CartItemModel> items) {
     final jsonString = json.encode(items.map((item) => item.toJson()).toList());
-    return sharedPreferences.setString(CACHED_CART, jsonString);
+    return sharedPreferences.setString(cachedCart, jsonString);
   }
 }
